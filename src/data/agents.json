@@ -1,0 +1,72 @@
+[
+  {
+    "id": "template-agent",
+    "name": "Notion Template Generator",
+    "slug": "template-generator",
+    "description": "Creates custom Notion templates for projects, sprints, or research logs.",
+    "triggerType": "openai",
+    "inputs": ["project type", "structure preference", "output format"],
+    "exampleUse": "Generate a sprint planning board for a medical AI start-up.",
+    "status": "active",
+    "category": "Productivity",
+    "tags": ["Notion", "Templates", "Workflow", "AI"],
+    "date": "2024-01-20",
+    "content": "The Notion Template Generator is an AI-powered tool that creates custom Notion templates based on your specific needs. Whether you're planning a project, organizing research, or setting up a sprint, this agent can generate the perfect template structure.\n\n## How It Works\n\nThe agent analyzes your requirements and creates a comprehensive Notion template that includes:\n\n- **Project Structure**: Organized pages and databases\n- **Custom Properties**: Tailored fields for your specific use case\n- **Workflow Templates**: Pre-built processes and checklists\n- **Integration Hooks**: Connections to other tools and systems\n\n## Use Cases\n\n### Project Management\nGenerate sprint planning boards, project timelines, and milestone trackers for development teams.\n\n### Research Organization\nCreate research databases, literature review templates, and knowledge management systems.\n\n### Content Creation\nDevelop content calendars, editorial workflows, and publishing pipelines.\n\n## Technical Details\n\n- **Trigger Type**: OpenAI GPT-4\n- **Input Processing**: Natural language requirements parsing\n- **Output Format**: Notion-compatible JSON structure\n- **Integration**: Direct Notion API connection\n\n## Future Enhancements\n\n- Template versioning and collaboration\n- Integration with project management tools\n- Custom property validation\n- Template performance analytics"
+  },
+  {
+    "id": "summarizer-agent",
+    "name": "Clinical Note Summarizer",
+    "slug": "clinical-summarizer",
+    "description": "Summarizes long patient notes into concise bullet points using GPT-4.",
+    "triggerType": "openai",
+    "inputs": ["free text", "target style"],
+    "exampleUse": "Summarize a SOAP note for radiology workflow triage.",
+    "status": "prototype",
+    "category": "Healthcare",
+    "tags": ["Medical", "AI", "Summarization", "Clinical"],
+    "date": "2024-01-15",
+    "content": "The Clinical Note Summarizer is designed to help healthcare professionals quickly extract key information from lengthy patient notes and medical records. Using advanced natural language processing, it identifies critical clinical information and presents it in a structured, easy-to-read format.\n\n## Key Features\n\n### Intelligent Summarization\n- Extracts key clinical findings and observations\n- Identifies critical patient information\n- Highlights important trends and changes\n- Maintains medical terminology accuracy\n\n### Customizable Output\n- **SOAP Format**: Structured Subjective, Objective, Assessment, Plan\n- **Bullet Points**: Concise key findings\n- **Timeline View**: Chronological clinical events\n- **Risk Assessment**: Highlighted potential issues\n\n### Privacy & Security\n- HIPAA-compliant processing\n- Local data processing options\n- Encrypted data transmission\n- Audit trail maintenance\n\n## Clinical Applications\n\n### Emergency Medicine\nRapid triage and decision support in emergency situations.\n\n### Primary Care\nEfficient review of patient history and current complaints.\n\n### Specialized Care\nSpecialized summaries for cardiology, oncology, and other specialties.\n\n## Technical Implementation\n\n- **Model**: GPT-4 with medical fine-tuning\n- **Processing**: Real-time text analysis\n- **Output**: Structured clinical summaries\n- **Integration**: EHR system compatibility\n\n## Future Development\n\n- Multi-language support\n- Specialty-specific templates\n- Real-time collaboration features\n- Advanced clinical decision support"
+  },
+  {
+    "id": "research-agent",
+    "name": "Literature Review Assistant",
+    "slug": "literature-assistant",
+    "description": "AI-powered research assistant that helps synthesize academic papers and identify key insights.",
+    "triggerType": "openai",
+    "inputs": ["research topic", "paper abstracts", "focus areas"],
+    "exampleUse": "Analyze recent papers on AI in medical imaging and create a synthesis report.",
+    "status": "idea",
+    "category": "Research",
+    "tags": ["Research", "Academic", "Literature", "AI"],
+    "date": "2024-01-10",
+    "content": "The Literature Review Assistant is an AI-powered tool designed to help researchers and academics efficiently process and synthesize large volumes of academic literature. It can analyze papers, identify key themes, and generate comprehensive literature reviews.\n\n## Core Capabilities\n\n### Paper Analysis\n- Extracts key findings and methodologies\n- Identifies research gaps and opportunities\n- Compares and contrasts different approaches\n- Highlights innovative contributions\n\n### Synthesis Generation\n- Creates structured literature reviews\n- Identifies emerging trends and patterns\n- Generates research questions and hypotheses\n- Maps the current state of knowledge\n\n### Citation Management\n- Tracks references and citations\n- Generates bibliographies in multiple formats\n- Identifies related papers and authors\n- Maintains research databases\n\n## Research Workflows\n\n### Systematic Reviews\nAutomated screening and analysis of large paper collections.\n\n### Meta-Analysis Support\nStatistical analysis and effect size calculations.\n\n### Grant Writing\nLiterature review sections for funding applications.\n\n### Conference Preparation\nQuick synthesis of recent developments in a field.\n\n## Technical Architecture\n\n- **NLP Processing**: Advanced text analysis and understanding\n- **Knowledge Graph**: Semantic relationships between papers\n- **Citation Network**: Academic collaboration mapping\n- **Output Formats**: Multiple academic writing styles\n\n## Future Enhancements\n\n- Real-time paper monitoring\n- Collaborative review features\n- Integration with research databases\n- Automated hypothesis generation"
+  },
+  {
+    "id": "design-agent",
+    "name": "Design System Generator",
+    "slug": "design-generator",
+    "description": "Creates comprehensive design systems and component libraries based on brand guidelines.",
+    "triggerType": "openai",
+    "inputs": ["brand guidelines", "design preferences", "component needs"],
+    "exampleUse": "Generate a complete design system for a healthcare technology platform.",
+    "status": "active",
+    "category": "Design",
+    "tags": ["Design", "UI/UX", "Components", "System"],
+    "date": "2024-01-25",
+    "content": "The Design System Generator is an AI-powered tool that creates comprehensive design systems and component libraries. It analyzes brand guidelines and design preferences to generate consistent, scalable design solutions that can be used across entire product ecosystems.\n\n## Generated Components\n\n### Visual Elements\n- **Color Palettes**: Accessible and brand-aligned color schemes\n- **Typography**: Hierarchical type systems with proper spacing\n- **Icons**: Consistent icon libraries and guidelines\n- **Illustrations**: Custom illustration styles and patterns\n\n### Interactive Components\n- **Buttons**: Primary, secondary, and tertiary button styles\n- **Forms**: Input fields, validation states, and error handling\n- **Navigation**: Header, footer, and breadcrumb components\n- **Cards**: Content containers and information displays\n\n### Layout Systems\n- **Grid Systems**: Responsive layout frameworks\n- **Spacing**: Consistent spacing scales and rules\n- **Breakpoints**: Mobile-first responsive design\n- **Containers**: Content width and padding guidelines\n\n## Design Principles\n\n### Accessibility\n- WCAG 2.1 AA compliance\n- Color contrast optimization\n- Keyboard navigation support\n- Screen reader compatibility\n\n### Consistency\n- Unified design language\n- Reusable component patterns\n- Standardized interaction models\n- Brand voice alignment\n\n### Scalability\n- Modular component architecture\n- Flexible design tokens\n- Version control integration\n- Documentation automation\n\n## Output Formats\n\n- **Figma Libraries**: Ready-to-use component libraries\n- **CSS/SCSS**: Styled component code\n- **React Components**: Functional component implementations\n- **Documentation**: Comprehensive usage guidelines\n\n## Future Features\n\n- Real-time collaboration\n- Version control and branching\n- Automated testing integration\n- Performance optimization"
+  },
+  {
+    "id": "workflow-agent",
+    "name": "Process Automation Builder",
+    "slug": "process-automation",
+    "description": "Designs and implements automated workflows for business processes and repetitive tasks.",
+    "triggerType": "openai",
+    "inputs": ["process description", "automation goals", "integration needs"],
+    "exampleUse": "Create an automated patient intake workflow for a medical practice.",
+    "status": "prototype",
+    "category": "Automation",
+    "tags": ["Automation", "Workflow", "Business", "Process"],
+    "date": "2024-01-18",
+    "content": "The Process Automation Builder is an intelligent tool that analyzes business processes and creates automated workflows to improve efficiency and reduce manual work. It can design complex automation sequences that integrate multiple systems and tools.\n\n## Automation Capabilities\n\n### Workflow Design\n- **Process Mapping**: Visual workflow diagrams\n- **Decision Trees**: Conditional logic and branching\n- **Integration Points**: API connections and data flows\n- **Error Handling**: Robust error recovery mechanisms\n\n### Task Automation\n- **Data Entry**: Automated form filling and validation\n- **Document Processing**: PDF parsing and information extraction\n- **Communication**: Automated email and notification systems\n- **Reporting**: Scheduled report generation and distribution\n\n### System Integration\n- **API Connections**: REST and GraphQL integrations\n- **Database Operations**: CRUD operations and data synchronization\n- **File Management**: Document processing and organization\n- **Third-party Tools**: Integration with popular business software\n\n## Use Cases\n\n### Healthcare\n- Patient intake and registration\n- Appointment scheduling and reminders\n- Medical record processing\n- Billing and insurance workflows\n\n### Business Operations\n- Customer onboarding\n- Order processing and fulfillment\n- HR and recruitment processes\n- Financial reporting and analysis\n\n### Research and Development\n- Data collection and processing\n- Experiment automation\n- Literature review workflows\n- Publication preparation\n\n## Technical Features\n\n- **Visual Builder**: Drag-and-drop workflow design\n- **Code Generation**: Executable automation scripts\n- **Testing Framework**: Workflow validation and testing\n- **Monitoring**: Real-time performance tracking\n\n## Future Enhancements\n\n- Machine learning optimization\n- Predictive process improvement\n- Advanced error handling\n- Multi-platform deployment"
+  }
+] 

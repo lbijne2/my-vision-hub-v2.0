@@ -1,7 +1,7 @@
 import Link from "next/link"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { BlogPost } from "@/lib/notion"
+import type { BlogPost } from "@/types"
 import { cn, formatDate } from "@/lib/utils"
 
 interface BlogPostCardProps {
@@ -27,23 +27,23 @@ export function BlogPostCard({ post, className }: BlogPostCardProps) {
               variant="secondary" 
               className={cn(
                 "text-xs font-medium",
-                post.status === 'published' 
+                post.published 
                   ? "bg-pastel-mint text-vision-charcoal" 
                   : "bg-pastel-peach text-vision-charcoal"
               )}
             >
-              {post.status}
+              {post.published ? 'published' : 'draft'}
             </Badge>
           </div>
         </CardHeader>
         
         <CardContent className="flex-1 space-y-4">
           <p className="text-sm text-vision-charcoal/80 leading-relaxed">
-            {post.excerpt}
+            {post.content?.substring(0, 150)}...
           </p>
           
           <div className="flex flex-wrap gap-2">
-            {post.tags.slice(0, 3).map((tag) => (
+            {post.tags?.slice(0, 3).map((tag: string) => (
               <Badge 
                 key={tag} 
                 variant="outline" 
@@ -52,7 +52,7 @@ export function BlogPostCard({ post, className }: BlogPostCardProps) {
                 {tag}
               </Badge>
             ))}
-            {post.tags.length > 3 && (
+            {post.tags && post.tags.length > 3 && (
               <Badge 
                 variant="outline" 
                 className="text-xs bg-vision-beige border-vision-border text-vision-charcoal/70"
@@ -65,7 +65,7 @@ export function BlogPostCard({ post, className }: BlogPostCardProps) {
         
         <div className="px-6 pb-6">
           <div className="flex items-center justify-between text-xs text-vision-charcoal/60">
-            <span>{formatDate(post.date)}</span>
+            <span>{formatDate(post.published_at || post.created_at)}</span>
             <span className="group-hover:text-vision-ochre transition-colors">
               Read Post →
             </span>

@@ -2,9 +2,24 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { ProjectCard } from "@/components/ProjectCard"
 import projectsData from "@/data/projects.json"
+import type { Project } from "@/types"
 
 export default function HomePage() {
-  const featuredProjects = projectsData.slice(0, 3)
+  // Convert local JSON data to Project type
+  const featuredProjects: Project[] = projectsData.slice(0, 3).map((project: any) => ({
+    id: project.id,
+    title: project.title,
+    slug: project.slug,
+    subtitle: project.subtitle,
+    description: project.description,
+    category: project.category,
+    status: project.status as 'active' | 'prototype' | 'archived',
+    tags: project.tags,
+    content: project.content,
+    cover_image_url: project.coverImage,
+    created_at: project.date,
+    updated_at: project.date,
+  }))
 
   return (
     <div className="min-h-screen">
@@ -64,9 +79,7 @@ export default function HomePage() {
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {featuredProjects.map((project) => (
-              <Link key={project.id} href={`/projects/${project.slug}`}>
-                <ProjectCard project={project} />
-              </Link>
+              <ProjectCard key={project.id} project={project} />
             ))}
           </div>
           

@@ -2,20 +2,23 @@
 
 A personal digital platform showcasing projects, thoughts, and resources at the intersection of technology, medicine, design, and human potential.
 
-## 🚀 Current Version: v0.4a
+## 🚀 Current Version: v0.4b
 
 **Latest Features:**
 - ✅ **v0.1**: Basic architecture with homepage and navigation
 - ✅ **v0.2**: Dynamic project pages with markdown support
 - ✅ **v0.3**: Notion integration for blog content management
 - ✅ **v0.4a**: Notion integration for project content management
+- ✅ **v0.4c**: Agentic workflows module with AI agents showcase
+- ✅ **v0.4b**: Full Supabase integration with graceful fallbacks
 
 ## 🛠️ Tech Stack
 
 - **Framework**: Next.js 15 (App Router)
 - **Styling**: Tailwind CSS with custom Vision Hub color palette
 - **UI Components**: shadcn/ui component system
-- **Content Management**: Notion API integration
+- **Database**: Supabase (PostgreSQL) with real-time capabilities
+- **Content Management**: Notion API integration (fallback)
 - **Markdown Rendering**: react-markdown with custom styling
 - **Deployment**: Vercel (with preview builds)
 
@@ -37,10 +40,10 @@ A personal digital platform showcasing projects, thoughts, and resources at the 
 ```
 src/
 ├── app/                    # Next.js App Router pages
-│   ├── blog/              # Blog section with Notion integration
-│   ├── projects/          # Projects section with Notion integration
+│   ├── blog/              # Blog section with Supabase integration
+│   ├── projects/          # Projects section with Supabase integration
+│   ├── agents/            # AI agents section with Supabase integration
 │   ├── resources/         # Resources section (coming soon)
-│   ├── agents/           # AI agents section (coming soon)
 │   └── dashboard/        # Private dashboard (coming soon)
 ├── components/            # Reusable UI components
 │   ├── ui/               # shadcn/ui components
@@ -49,11 +52,17 @@ src/
 │   ├── BlogPostCard.tsx  # Blog post display component
 │   └── MarkdownRenderer.tsx # Enhanced markdown rendering
 ├── lib/                  # Utility functions and API clients
-│   ├── notion.ts         # Notion API integration
+│   ├── supabase.ts       # Supabase client configuration
+│   ├── notion.ts         # Notion API integration (fallback)
+│   ├── agents.ts         # Agent data management
+│   ├── projects.ts       # Project data management
 │   └── utils.ts          # Helper functions
+├── types/                # TypeScript type definitions
+│   └── index.ts          # Database and API interfaces
 └── data/                 # Fallback data (JSON files)
     ├── projects.json     # Project fallback data
-    └── posts.json        # Blog post fallback data
+    ├── posts.json        # Blog post fallback data
+    └── agents.json       # Agent fallback data
 ```
 
 ## 🚀 Getting Started
@@ -61,7 +70,8 @@ src/
 ### Prerequisites
 - Node.js 18+ 
 - npm or yarn
-- Notion account (for content management)
+- Supabase account (for database)
+- Notion account (optional, for fallback)
 
 ### Installation
 
@@ -79,31 +89,39 @@ src/
 3. **Set up environment variables:**
    Create a `.env.local` file with:
    ```bash
-   # Notion API Configuration
+   # Supabase Configuration (required)
+   NEXT_PUBLIC_SUPABASE_URL=https://your-project-id.supabase.co
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+   
+   # Notion Configuration (optional - for fallback)
    NOTION_API_KEY=your_notion_integration_token
    NOTION_BLOG_DB_ID=your_blog_database_id
    NOTION_PROJECT_DB_ID=your_project_database_id
    ```
 
-4. **Run the development server:**
+4. **Set up Supabase database:**
+   Follow the [Supabase Setup Guide](./SUPABASE_SETUP.md) to create tables and add sample data.
+
+5. **Run the development server:**
    ```bash
    npm run dev
    ```
 
-5. **Open your browser:**
+6. **Open your browser:**
    Navigate to `http://localhost:3000`
 
 ## 📝 Content Management
 
-### Blog Content (Notion Integration)
-- **Setup Guide**: [NOTION_SETUP.md](./NOTION_SETUP.md)
-- **Features**: Dynamic blog posts with markdown rendering
-- **Fallback**: Local `posts.json` if Notion is unavailable
+### Supabase Database (Primary)
+- **Setup Guide**: [SUPABASE_SETUP.md](./SUPABASE_SETUP.md)
+- **Features**: Real-time database with PostgreSQL
+- **Tables**: `agents`, `projects`, `blog_posts`
+- **Fallback**: Local JSON data if Supabase is unavailable
 
-### Project Content (Notion Integration)
-- **Setup Guide**: [NOTION_PROJECT_SETUP.md](./NOTION_PROJECT_SETUP.md)
-- **Features**: Dynamic project pages with rich content
-- **Fallback**: Local `projects.json` if Notion is unavailable
+### Notion Integration (Fallback)
+- **Setup Guide**: [NOTION_SETUP.md](./NOTION_SETUP.md)
+- **Features**: Content management via Notion
+- **Fallback**: Local JSON data if Notion is unavailable
 
 ## 🎯 Key Features
 
@@ -137,6 +155,20 @@ src/
 - Cover image support
 - Comprehensive fallback system
 
+**v0.4c - Agentic Workflows**
+- AI agent showcase with detailed descriptions
+- Agent status management (active, prototype, idea)
+- Input/output specification display
+- Example use cases and workflows
+- Category-based organization
+
+**v0.4b - Supabase Integration**
+- Full Supabase database integration
+- Real-time data capabilities
+- Graceful fallback system
+- Type-safe database operations
+- Performance optimized queries
+
 ### 🚧 Upcoming Features
 
 **v0.4b - Enhanced Project Features**
@@ -151,11 +183,66 @@ src/
 - Search and filtering
 - User interaction tracking
 
-**v0.6 - AI Agents**
-- Interactive AI agent demos
-- Agent comparison tools
+**v0.6 - Enhanced Agents**
+- Interactive agent demos and testing
 - Custom agent creation interface
-- Performance analytics
+- Agent performance analytics
+- OpenAI API integration
+
+## 🗄️ Database Schema
+
+### Agents Table
+```sql
+CREATE TABLE agents (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  name text NOT NULL,
+  slug text UNIQUE NOT NULL,
+  status text CHECK (status IN ('active', 'prototype', 'idea')),
+  category text NOT NULL,
+  description text,
+  inputs jsonb,
+  tags text[],
+  example_uses text[],
+  trigger_type text,
+  created_at timestamp with time zone DEFAULT now(),
+  updated_at timestamp with time zone DEFAULT now()
+);
+```
+
+### Projects Table
+```sql
+CREATE TABLE projects (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  title text NOT NULL,
+  slug text UNIQUE NOT NULL,
+  subtitle text,
+  description text,
+  cover_image_url text,
+  tags text[],
+  status text CHECK (status IN ('active', 'prototype', 'archived')),
+  github_url text,
+  notion_url text,
+  created_at timestamp with time zone DEFAULT now(),
+  updated_at timestamp with time zone DEFAULT now()
+);
+```
+
+### Blog Posts Table
+```sql
+CREATE TABLE blog_posts (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  title text NOT NULL,
+  slug text UNIQUE NOT NULL,
+  content text,
+  author text,
+  published boolean DEFAULT false,
+  tags text[],
+  published_at timestamp with time zone,
+  notion_url text,
+  created_at timestamp with time zone DEFAULT now(),
+  updated_at timestamp with time zone DEFAULT now()
+);
+```
 
 ## 🔧 Development
 
@@ -189,6 +276,11 @@ npx tsc --noEmit
 
 ### Environment Variables for Production
 ```bash
+# Supabase Configuration
+NEXT_PUBLIC_SUPABASE_URL=https://your-project-id.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+
+# Notion Configuration (optional)
 NOTION_API_KEY=your_notion_integration_token
 NOTION_BLOG_DB_ID=your_blog_database_id
 NOTION_PROJECT_DB_ID=your_project_database_id
@@ -196,6 +288,7 @@ NOTION_PROJECT_DB_ID=your_project_database_id
 
 ## 📚 Documentation
 
+- [Supabase Setup Guide](./SUPABASE_SETUP.md) - Complete guide for database setup
 - [Notion Blog Setup](./NOTION_SETUP.md) - Complete guide for blog integration
 - [Notion Project Setup](./NOTION_PROJECT_SETUP.md) - Complete guide for project integration
 - [Overview](./overview.md) - Project vision and architecture
@@ -216,10 +309,10 @@ This project is licensed under the MIT License.
 
 - **v0.4b**: Enhanced project features (GitHub integration, filtering)
 - **v0.5**: Resources section with library management
-- **v0.6**: AI agents showcase and tools
+- **v0.6**: Enhanced agents with OpenAI integration
 - **v0.7**: Dashboard with analytics and management
 - **v1.0**: Full feature set with advanced integrations
 
 ---
 
-**Built with ❤️ using Next.js, Tailwind CSS, and Notion API** 
+**Built with ❤️ using Next.js, Tailwind CSS, Supabase, and Notion API** 

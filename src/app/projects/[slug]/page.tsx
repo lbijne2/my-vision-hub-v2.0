@@ -1,12 +1,12 @@
 import { notFound } from "next/navigation"
 import Link from "next/link"
-import { ArrowLeft, Calendar, Clock } from "lucide-react"
+import { ArrowLeft, Calendar, Clock, Tag } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { AspectRatio, AspectRatioContent } from "@/components/ui/aspect-ratio"
 import { Separator } from "@/components/ui/separator"
-import { getProjectBySlug, getStatusColor } from "@/lib/notion"
+import { getProjectBySlug, getStatusColor } from "@/lib/projects"
 import { MarkdownRenderer } from "@/components/MarkdownRenderer"
 import { cn, formatDate, formatDateHeader, formatDateFromISO } from "@/lib/utils"
 
@@ -68,37 +68,45 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
           <div className="flex flex-wrap items-center gap-4 text-sm text-vision-charcoal/60 mb-6">
             <div className="flex items-center space-x-1">
               <Calendar className="h-4 w-4" />
-              <span>{formatDateHeader(project.date)}</span>
+              <span>{formatDateHeader(project.created_at)}</span>
             </div>
-            {project.lastEdited && (
+            {project.category && (
+              <div className="flex items-center space-x-1">
+                <Tag className="h-4 w-4" />
+                <span>{project.category}</span>
+              </div>
+            )}
+            {project.updated_at && project.updated_at !== project.created_at && (
               <div className="flex items-center space-x-1">
                 <Clock className="h-4 w-4" />
-                <span>Updated {formatDateFromISO(project.lastEdited)}</span>
+                <span>Updated {formatDateFromISO(project.updated_at)}</span>
               </div>
             )}
           </div>
 
           {/* Tags */}
-          <div className="flex flex-wrap gap-2 mb-6">
-            {project.tags.map((tag) => (
-              <Badge 
-                key={tag} 
-                variant="outline" 
-                className="text-xs bg-vision-beige border-vision-border text-vision-charcoal/70"
-              >
-                {tag}
-              </Badge>
-            ))}
-          </div>
+          {project.tags && project.tags.length > 0 && (
+            <div className="flex flex-wrap gap-2 mb-6">
+              {project.tags.map((tag) => (
+                <Badge 
+                  key={tag} 
+                  variant="outline" 
+                  className="text-xs bg-vision-beige border-vision-border text-vision-charcoal/70"
+                >
+                  {tag}
+                </Badge>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Cover Image */}
-        {project.coverImage && (
+        {project.cover_image_url && (
           <Card className="mb-8 overflow-hidden">
             <AspectRatio ratio={16 / 9}>
               <AspectRatioContent>
                 <img
-                  src={project.coverImage}
+                  src={project.cover_image_url}
                   alt={project.title}
                   className="w-full h-full object-cover"
                 />
@@ -114,7 +122,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
               Project Details
             </CardTitle>
             <CardDescription className="text-vision-charcoal/70">
-              {project.category}
+              {project.subtitle}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -129,7 +137,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
                   Content not available. This project may be in development or the content hasn't been loaded yet.
                 </p>
                 <p className="text-sm text-vision-charcoal/40 mt-2">
-                  If you're using Notion integration, make sure the project has content in the database.
+                  If you're using Supabase integration, make sure the project has content in the database.
                 </p>
               </div>
             )}
@@ -140,10 +148,15 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
         <div className="mt-8 pt-8 border-t border-vision-border">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div className="text-sm text-vision-charcoal/60">
-              <p>Category: {project.category}</p>
-              <p>Started on {formatDate(project.date)}</p>
-              {project.lastEdited && (
-                                  <p>Last updated on {formatDateFromISO(project.lastEdited)}</p>
+              <p>Created on {formatDate(project.created_at)}</p>
+              {project.updated_at && project.updated_at !== project.created_at && (
+                <p>Last updated on {formatDate(project.updated_at)}</p>
+              )}
+              {project.github_url && (
+                <p>GitHub: <a href={project.github_url} className="text-vision-ochre hover:underline" target="_blank" rel="noopener noreferrer">View Repository</a></p>
+              )}
+              {project.notion_url && (
+                <p>Notion: <a href={project.notion_url} className="text-vision-ochre hover:underline" target="_blank" rel="noopener noreferrer">View Document</a></p>
               )}
             </div>
             <Button variant="outline" asChild>

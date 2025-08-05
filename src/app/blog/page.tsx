@@ -1,8 +1,9 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { BlogPostCard } from "@/components/BlogPostCard"
 import { getBlogPosts } from "@/lib/notion"
+import { BlogPostCard } from "@/components/BlogPostCard"
+import type { BlogPost } from "@/types"
 
 export default async function BlogPage() {
   const posts = await getBlogPosts()
@@ -16,15 +17,15 @@ export default async function BlogPage() {
             Blog
           </h1>
           <p className="text-xl text-vision-charcoal/70 max-w-3xl mx-auto">
-            Reflective, opinionated, and analytical writing on AI, medicine, 
-            design, ethics, and the future of human-technology collaboration.
+            Thoughts, insights, and explorations at the intersection of technology, 
+            medicine, design, and human potential.
           </p>
         </div>
 
         {/* Blog Posts Grid */}
         {posts.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
-            {posts.map((post) => (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {posts.map((post: BlogPost) => (
               <BlogPostCard key={post.id} post={post} />
             ))}
           </div>
@@ -40,7 +41,7 @@ export default async function BlogPage() {
             </CardHeader>
             <CardContent className="text-center space-y-6">
               <p className="text-vision-charcoal/70">
-                Check back soon for new content, or configure your Notion integration to start publishing posts.
+                Check back soon for new posts, or configure your Supabase integration to start managing content.
               </p>
               <div className="pt-4">
                 <Button variant="vision" asChild>
@@ -58,7 +59,7 @@ export default async function BlogPage() {
           <Card className="max-w-2xl mx-auto">
             <CardHeader className="text-center">
               <CardTitle className="text-2xl text-vision-charcoal">
-                🚧 More Features Coming Soon
+                📝 More Features Coming Soon
               </CardTitle>
               <CardDescription className="text-lg">
                 Additional blog features are under development
@@ -69,11 +70,11 @@ export default async function BlogPage() {
                 Future enhancements will include:
               </p>
               <ul className="text-left space-y-2 text-vision-charcoal/70">
-                <li>• Comment system and reader engagement</li>
-                <li>• Social sharing and bookmarking</li>
-                <li>• Advanced search and filtering</li>
-                <li>• Newsletter subscription</li>
-                <li>• Related posts and recommendations</li>
+                <li>• Search and filtering capabilities</li>
+                <li>• Category and tag organization</li>
+                <li>• Supabase integration for content management</li>
+                <li>• Comment system and engagement features</li>
+                <li>• Newsletter subscription and notifications</li>
               </ul>
               <div className="pt-4">
                 <Button variant="vision" asChild>

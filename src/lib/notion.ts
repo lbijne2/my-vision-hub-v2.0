@@ -2,9 +2,11 @@ import { Client } from '@notionhq/client'
 import { NotionToMarkdown } from 'notion-to-md'
 import postsData from '@/data/posts.json'
 import projectsData from '@/data/projects.json'
+import { supabase, isSupabaseAvailable, logSupabaseError } from './supabase'
+import type { BlogPost, Project } from '@/types'
 
-// Types for blog posts
-export interface BlogPost {
+// Types for blog posts (keeping for backward compatibility)
+export interface BlogPostLegacy {
   id: string
   title: string
   slug: string
@@ -17,8 +19,8 @@ export interface BlogPost {
   lastEdited?: string
 }
 
-// Types for projects
-export interface Project {
+// Types for projects (keeping for backward compatibility)
+export interface ProjectLegacy {
   id: string
   title: string
   slug: string
@@ -74,6 +76,23 @@ function getTagsFromProperty(property: any): string[] {
   return property.multi_select.map((tag: any) => tag.name)
 }
 
+// Helper function to convert local JSON data to BlogPost type
+function convertLocalPostToBlogPost(localPost: any): BlogPost {
+  return {
+    id: localPost.id,
+    title: localPost.title,
+    slug: localPost.slug,
+    content: localPost.content,
+    author: localPost.author,
+    published: localPost.status === 'published',
+    tags: localPost.tags,
+    published_at: localPost.date,
+    notion_url: localPost.notionUrl,
+    created_at: localPost.date,
+    updated_at: localPost.date,
+  }
+}
+
 // Helper function to get status color for projects
 export function getStatusColor(status: string): string {
   const statusColors = {
@@ -87,127 +106,160 @@ export function getStatusColor(status: string): string {
   return statusColors[status as keyof typeof statusColors] || "bg-pastel-cream text-vision-charcoal"
 }
 
-// Fetch all published blog posts from Notion
+// Fetch all published blog posts from Supabase or Notion
 export async function getBlogPosts(): Promise<BlogPost[]> {
   try {
-    // Check if Notion is configured
-    if (!process.env.NOTION_API_KEY || !process.env.NOTION_BLOG_DB_ID) {
-      console.warn('Notion API not configured, using fallback data')
-      return postsData as BlogPost[]
+    // Try Notion first if configured
+    if (process.env.NOTION_API_KEY && process.env.NOTION_BLOG_DB_ID) {
+      const response = await notion.databases.query({
+        database_id: process.env.NOTION_BLOG_DB_ID,
+        filter: {
+          property: 'published',
+          checkbox: {
+            equals: true,
+          },
+        },
+        sorts: [
+          {
+            property: 'date',
+            direction: 'descending',
+          },
+        ],
+      })
+
+      const posts: BlogPost[] = response.results.map((page: any) => {
+        if (!page.properties) {
+          console.warn('Page missing properties:', page.id)
+          return null
+        }
+        
+        const properties = page.properties as NotionDatabaseEntry['properties']
+        
+        return {
+          id: page.id,
+          title: getTextFromProperty(properties.title),
+          slug: getTextFromProperty(properties.slug),
+          excerpt: getTextFromProperty(properties.excerpt),
+          content: getTextFromProperty(properties.excerpt),
+          author: getTextFromProperty(properties.author),
+          published: true,
+          tags: getTagsFromProperty(properties.tags),
+          published_at: properties.date?.date?.start || new Date().toISOString(),
+          notion_url: page.url,
+          created_at: properties.date?.date?.start || new Date().toISOString(),
+          updated_at: page.last_edited_time,
+        }
+      }).filter(Boolean) as BlogPost[]
+
+      if (posts.length > 0) {
+        return posts
+      }
     }
 
-    const response = await notion.databases.query({
-      database_id: process.env.NOTION_BLOG_DB_ID,
-      filter: {
-        property: 'published',
-        checkbox: {
-          equals: true,
-        },
-      },
-      sorts: [
-        {
-          property: 'date',
-          direction: 'descending',
-        },
-      ],
-    })
+    // Try Supabase as fallback if available
+    if (isSupabaseAvailable() && supabase) {
+      const { data, error } = await supabase
+        .from('blog_posts')
+        .select('*')
+        .eq('published', true)
+        .order('published_at', { ascending: false })
 
-    const posts: BlogPost[] = response.results.map((page: any) => {
-      // Type guard to ensure page has properties
-      if (!page.properties) {
-        console.warn('Page missing properties:', page.id)
-        return null
+      if (error) {
+        logSupabaseError('getBlogPosts', error)
+      } else if (data && data.length > 0) {
+        console.log('Using Supabase fallback for blog posts')
+        return data
       }
-      
-      const properties = page.properties as NotionDatabaseEntry['properties']
-      
-      return {
-        id: page.id,
-        title: getTextFromProperty(properties.title),
-        slug: getTextFromProperty(properties.slug),
-        excerpt: getTextFromProperty(properties.excerpt),
-        author: getTextFromProperty(properties.author),
-        date: properties.date?.date?.start || new Date().toISOString(),
-        tags: getTagsFromProperty(properties.tags),
-        status: 'published',
-        lastEdited: properties.lastEdited?.last_edited_time,
-      }
-    }).filter(Boolean) as BlogPost[]
-
-    return posts
+    }
   } catch (error) {
-    console.error('Error fetching blog posts from Notion:', error)
-    console.warn('Using fallback data')
-    return postsData as BlogPost[]
+    logSupabaseError('getBlogPosts', error)
   }
+
+  // Fallback to local data
+  console.warn('Using fallback blog post data')
+  return postsData.map(convertLocalPostToBlogPost)
 }
 
 // Fetch a single blog post by slug
 export async function getBlogPostBySlug(slug: string): Promise<BlogPost | null> {
   try {
-    // Check if Notion is configured
-    if (!process.env.NOTION_API_KEY || !process.env.NOTION_BLOG_DB_ID) {
-      console.warn('Notion API not configured, using fallback data')
-      const fallbackPost = postsData.find((post: any) => post.slug === slug)
-      return fallbackPost as BlogPost || null
-    }
-
-    // First, find the page by slug
-    const response = await notion.databases.query({
-      database_id: process.env.NOTION_BLOG_DB_ID,
-      filter: {
-        and: [
-          {
-            property: 'published',
-            checkbox: {
-              equals: true,
+    // Try Notion first if configured
+    if (process.env.NOTION_API_KEY && process.env.NOTION_BLOG_DB_ID) {
+      const response = await notion.databases.query({
+        database_id: process.env.NOTION_BLOG_DB_ID,
+        filter: {
+          and: [
+            {
+              property: 'published',
+              checkbox: {
+                equals: true,
+              },
             },
-          },
-          {
-            property: 'slug',
-            rich_text: {
-              equals: slug,
+            {
+              property: 'slug',
+              rich_text: {
+                equals: slug,
+              },
             },
-          },
-        ],
-      },
-    })
+          ],
+        },
+      })
 
-    if (response.results.length === 0) {
-      return null
+      if (response.results.length === 0) {
+        return null
+      }
+
+      const page = response.results[0] as any
+      if (!page.properties) {
+        console.warn('Page missing properties:', page.id)
+        return null
+      }
+
+      const properties = page.properties as NotionDatabaseEntry['properties']
+
+      // Get the page content
+      const mdBlocks = await notionToMd.pageToMarkdown(page.id)
+      const content = notionToMd.toMarkdownString(mdBlocks)
+
+      return {
+        id: page.id,
+        title: getTextFromProperty(properties.title),
+        slug: getTextFromProperty(properties.slug),
+        excerpt: getTextFromProperty(properties.excerpt),
+        content: content.parent,
+        author: getTextFromProperty(properties.author),
+        published: true,
+        tags: getTagsFromProperty(properties.tags),
+        published_at: properties.date?.date?.start || new Date().toISOString(),
+        notion_url: page.url,
+        created_at: properties.date?.date?.start || new Date().toISOString(),
+        updated_at: page.last_edited_time,
+      }
     }
 
-    const page = response.results[0] as any
-    // Type guard to ensure page has properties
-    if (!page.properties) {
-      console.warn('Page missing properties:', page.id)
-      return null
-    }
+    // Try Supabase as fallback if available
+    if (isSupabaseAvailable() && supabase) {
+      const { data, error } = await supabase
+        .from('blog_posts')
+        .select('*')
+        .eq('slug', slug)
+        .eq('published', true)
+        .single()
 
-    const properties = page.properties as NotionDatabaseEntry['properties']
-
-    // Get the page content
-    const mdBlocks = await notionToMd.pageToMarkdown(page.id)
-    const content = notionToMd.toMarkdownString(mdBlocks)
-
-    return {
-      id: page.id,
-      title: getTextFromProperty(properties.title),
-      slug: getTextFromProperty(properties.slug),
-      excerpt: getTextFromProperty(properties.excerpt),
-      author: getTextFromProperty(properties.author),
-      date: properties.date?.date?.start || new Date().toISOString(),
-      tags: getTagsFromProperty(properties.tags),
-      status: 'published',
-      content: content.parent,
-      lastEdited: properties.lastEdited?.last_edited_time,
+      if (error) {
+        logSupabaseError('getBlogPostBySlug', error)
+      } else if (data) {
+        console.log('Using Supabase fallback for blog post:', slug)
+        return data
+      }
     }
   } catch (error) {
-    console.error('Error fetching blog post from Notion:', error)
-    console.warn('Using fallback data')
-    const fallbackPost = postsData.find((post: any) => post.slug === slug)
-    return fallbackPost as BlogPost || null
+    logSupabaseError('getBlogPostBySlug', error)
   }
+
+  // Fallback to local data
+  const fallbackPost = postsData.find((post: any) => post.slug === slug)
+  return fallbackPost ? convertLocalPostToBlogPost(fallbackPost) : null
 }
 
 // Get all blog post slugs for static generation
@@ -221,117 +273,171 @@ export async function getBlogPostSlugs(): Promise<string[]> {
   }
 }
 
-// Fetch all projects from Notion
+// Fetch all projects from Notion or Supabase
 export async function getAllProjects(): Promise<Project[]> {
   try {
-    // Check if Notion is configured
-    if (!process.env.NOTION_API_KEY || !process.env.NOTION_PROJECT_DB_ID) {
-      console.warn('Notion API not configured for projects, using fallback data')
-      return projectsData as Project[]
+    // Try Notion first if configured
+    if (process.env.NOTION_API_KEY && process.env.NOTION_PROJECT_DB_ID) {
+      const response = await notion.databases.query({
+        database_id: process.env.NOTION_PROJECT_DB_ID,
+        sorts: [
+          {
+            property: 'title',
+            direction: 'ascending',
+          },
+        ],
+      })
+
+      const projects: Project[] = response.results.map((page: any) => {
+        if (!page.properties) {
+          console.warn('Project page missing properties:', page.id)
+          return null
+        }
+        
+        const properties = page.properties
+        
+        return {
+          id: page.id,
+          title: getTextFromProperty(properties.title),
+          slug: getTextFromProperty(properties.slug),
+          subtitle: getTextFromProperty(properties.subtitle),
+          category: getTextFromProperty(properties.category),
+          description: getTextFromProperty(properties.description),
+          cover_image_url: properties.coverImage?.files?.[0]?.file?.url || properties.coverImage?.files?.[0]?.external?.url || '',
+          tags: getTagsFromProperty(properties.tags),
+          status: properties.status?.select?.name || 'idea',
+          github_url: properties.githubUrl?.url || '',
+          notion_url: page.url,
+          created_at: properties.date?.date?.start || new Date().toISOString(),
+          updated_at: page.last_edited_time,
+        }
+      }).filter(Boolean) as Project[]
+
+      if (projects.length > 0) {
+        return projects
+      }
     }
 
-    const response = await notion.databases.query({
-      database_id: process.env.NOTION_PROJECT_DB_ID,
-      sorts: [
-        {
-          property: 'title',
-          direction: 'ascending',
-        },
-      ],
-    })
+    // Try Supabase as fallback if available
+    if (isSupabaseAvailable() && supabase) {
+      const { data, error } = await supabase
+        .from('projects')
+        .select('*')
+        .order('created_at', { ascending: false })
 
-    const projects: Project[] = response.results.map((page: any) => {
-      // Type guard to ensure page has properties
-      if (!page.properties) {
-        console.warn('Project page missing properties:', page.id)
-        return null
+      if (error) {
+        logSupabaseError('getAllProjects', error)
+      } else if (data && data.length > 0) {
+        console.log('Using Supabase fallback for projects')
+        return data
       }
-      
-      const properties = page.properties
-      
-      return {
-        id: page.id,
-        title: getTextFromProperty(properties.title),
-        slug: getTextFromProperty(properties.slug),
-        subtitle: getTextFromProperty(properties.subtitle),
-        description: getTextFromProperty(properties.description),
-        category: getTextFromProperty(properties.category),
-        status: properties.status?.select?.name || 'idea',
-        image: properties.image?.files?.[0]?.file?.url || properties.image?.files?.[0]?.external?.url || '',
-        coverImage: properties.coverImage?.files?.[0]?.file?.url || properties.coverImage?.files?.[0]?.external?.url || '',
-        tags: getTagsFromProperty(properties.tags),
-        date: properties.date?.date?.start || new Date().toISOString(),
-        lastEdited: page.last_edited_time,
-      }
-    }).filter(Boolean) as Project[]
-
-    return projects
+    }
   } catch (error) {
-    console.error('Error fetching projects from Notion:', error)
-    console.warn('Using fallback data')
-    return projectsData as Project[]
+    logSupabaseError('getAllProjects', error)
   }
+
+  // Fallback to local data
+  console.warn('Using fallback project data')
+  return projectsData.map((project: any) => ({
+    id: project.id,
+    title: project.title,
+    slug: project.slug,
+    subtitle: project.subtitle,
+    description: project.description,
+    cover_image_url: project.coverImage,
+    tags: project.tags,
+    status: project.status as 'active' | 'prototype' | 'archived',
+    github_url: undefined, // Not available in local data
+    notion_url: undefined, // Not available in local data
+    created_at: project.date,
+    updated_at: project.date,
+  }))
 }
 
 // Fetch a single project by slug
 export async function getProjectBySlug(slug: string): Promise<Project | null> {
   try {
-    // Check if Notion is configured
-    if (!process.env.NOTION_API_KEY || !process.env.NOTION_PROJECT_DB_ID) {
-      console.warn('Notion API not configured for projects, using fallback data')
-      const fallbackProject = projectsData.find((project: any) => project.slug === slug)
-      return fallbackProject as Project || null
-    }
-
-    // First, find the page by slug
-    const response = await notion.databases.query({
-      database_id: process.env.NOTION_PROJECT_DB_ID,
-      filter: {
-        property: 'slug',
-        rich_text: {
-          equals: slug,
+    // Try Notion first if configured
+    if (process.env.NOTION_API_KEY && process.env.NOTION_PROJECT_DB_ID) {
+      const response = await notion.databases.query({
+        database_id: process.env.NOTION_PROJECT_DB_ID,
+        filter: {
+          property: 'slug',
+          rich_text: {
+            equals: slug,
+          },
         },
-      },
-    })
+      })
 
-    if (response.results.length === 0) {
-      return null
+      if (response.results.length === 0) {
+        return null
+      }
+
+      const page = response.results[0] as any
+      if (!page.properties) {
+        console.warn('Project page missing properties:', page.id)
+        return null
+      }
+
+      const properties = page.properties
+
+      // Get the page content
+      const mdBlocks = await notionToMd.pageToMarkdown(page.id)
+      const content = notionToMd.toMarkdownString(mdBlocks)
+
+      return {
+        id: page.id,
+        title: getTextFromProperty(properties.title),
+        slug: getTextFromProperty(properties.slug),
+        subtitle: getTextFromProperty(properties.subtitle),
+        category: getTextFromProperty(properties.category),
+        description: getTextFromProperty(properties.description),
+        content: content.parent,
+        cover_image_url: properties.coverImage?.files?.[0]?.file?.url || properties.coverImage?.files?.[0]?.external?.url || '',
+        tags: getTagsFromProperty(properties.tags),
+        status: properties.status?.select?.name || 'idea',
+        github_url: properties.githubUrl?.url || '',
+        notion_url: page.url,
+        created_at: properties.date?.date?.start || new Date().toISOString(),
+        updated_at: page.last_edited_time,
+      }
     }
 
-    const page = response.results[0] as any
-    // Type guard to ensure page has properties
-    if (!page.properties) {
-      console.warn('Project page missing properties:', page.id)
-      return null
-    }
+    // Try Supabase as fallback if available
+    if (isSupabaseAvailable() && supabase) {
+      const { data, error } = await supabase
+        .from('projects')
+        .select('*')
+        .eq('slug', slug)
+        .single()
 
-    const properties = page.properties
-
-    // Get the page content
-    const mdBlocks = await notionToMd.pageToMarkdown(page.id)
-    const content = notionToMd.toMarkdownString(mdBlocks)
-
-    return {
-      id: page.id,
-      title: getTextFromProperty(properties.title),
-      slug: getTextFromProperty(properties.slug),
-      subtitle: getTextFromProperty(properties.subtitle),
-      description: getTextFromProperty(properties.description),
-      category: getTextFromProperty(properties.category),
-      status: properties.status?.select?.name || 'idea',
-      image: properties.image?.files?.[0]?.file?.url || properties.image?.files?.[0]?.external?.url || '',
-      coverImage: properties.coverImage?.files?.[0]?.file?.url || properties.coverImage?.files?.[0]?.external?.url || '',
-      tags: getTagsFromProperty(properties.tags),
-      date: properties.date?.date?.start || new Date().toISOString(),
-      content: content.parent,
-      lastEdited: page.last_edited_time,
+      if (error) {
+        logSupabaseError('getProjectBySlug', error)
+      } else if (data) {
+        console.log('Using Supabase fallback for project:', slug)
+        return data
+      }
     }
   } catch (error) {
-    console.error('Error fetching project from Notion:', error)
-    console.warn('Using fallback data')
-    const fallbackProject = projectsData.find((project: any) => project.slug === slug)
-    return fallbackProject as Project || null
+    logSupabaseError('getProjectBySlug', error)
   }
+
+  // Fallback to local data
+  const fallbackProject = projectsData.find((project: any) => project.slug === slug)
+  return fallbackProject ? {
+    id: fallbackProject.id,
+    title: fallbackProject.title,
+    slug: fallbackProject.slug,
+    subtitle: fallbackProject.subtitle,
+    description: fallbackProject.description,
+    cover_image_url: fallbackProject.coverImage,
+    tags: fallbackProject.tags,
+    status: fallbackProject.status as 'active' | 'prototype' | 'archived',
+    github_url: undefined, // Not available in local data
+    notion_url: undefined, // Not available in local data
+    created_at: fallbackProject.date,
+    updated_at: fallbackProject.date,
+  } : null
 }
 
 // Get all project slugs for static generation

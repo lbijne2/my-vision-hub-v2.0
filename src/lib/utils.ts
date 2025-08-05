@@ -6,10 +6,13 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function formatDate(dateString: string): string {
-  // Parse the date string and create a date object in local timezone
-  // Split the date string to avoid timezone conversion
-  const [year, month, day] = dateString.split('-').map(Number)
-  const date = new Date(year, month - 1, day) // month is 0-indexed in JavaScript
+  // Handle both ISO format and YYYY-MM-DD format
+  const date = new Date(dateString)
+  
+  // Check if the date is valid
+  if (isNaN(date.getTime())) {
+    return 'Invalid Date'
+  }
   
   // Format in European style (DD/MM/YYYY)
   return date.toLocaleDateString('en-GB', {
@@ -20,10 +23,13 @@ export function formatDate(dateString: string): string {
 }
 
 export function formatDateHeader(dateString: string): string {
-  // Parse the date string and create a date object in local timezone
-  // Split the date string to avoid timezone conversion
-  const [year, month, day] = dateString.split('-').map(Number)
-  const date = new Date(year, month - 1, day) // month is 0-indexed in JavaScript
+  // Handle both ISO format and YYYY-MM-DD format
+  const date = new Date(dateString)
+  
+  // Check if the date is valid
+  if (isNaN(date.getTime())) {
+    return 'Invalid Date'
+  }
   
   // Format in header style (Month Day, Year)
   return date.toLocaleDateString('en-US', {
