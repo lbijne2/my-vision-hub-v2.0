@@ -29,11 +29,11 @@ export function getProjectSlugs(): string[] {
 
 export function getStatusColor(status: string): string {
   const statusColors = {
-    "in progress": "bg-blue-100 text-blue-800",
-    "planning": "bg-yellow-100 text-yellow-800",
-    "research": "bg-purple-100 text-purple-800",
-    "completed": "bg-green-100 text-green-800",
+    "in progress": "bg-pastel-sky text-vision-charcoal",
+    "planning": "bg-pastel-peach text-vision-charcoal",
+    "research": "bg-pastel-lavender text-vision-charcoal",
+    "completed": "bg-pastel-mint text-vision-charcoal",
   }
   
-  return statusColors[status as keyof typeof statusColors] || "bg-gray-100 text-gray-800"
+  return statusColors[status as keyof typeof statusColors] || "bg-pastel-cream text-vision-charcoal"
 } 

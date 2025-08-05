@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { getBlogPostBySlug } from "@/lib/notion"
 import { MarkdownRenderer } from "@/components/MarkdownRenderer"
-import { cn } from "@/lib/utils"
+import { cn, formatDate } from "@/lib/utils"
 
 interface BlogPostPageProps {
   params: Promise<{
@@ -55,9 +55,9 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
               variant="secondary" 
               className={cn(
                 "text-sm font-medium ml-4",
-                post.status === 'published' 
-                  ? "bg-green-100 text-green-800" 
-                  : "bg-yellow-100 text-yellow-800"
+                              post.status === 'published' 
+                ? "bg-pastel-mint text-vision-charcoal" 
+                : "bg-pastel-peach text-vision-charcoal"
               )}
             >
               {post.status}
@@ -72,11 +72,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
             </div>
             <div className="flex items-center space-x-1">
               <Calendar className="h-4 w-4" />
-              <span>{new Date(post.date).toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-              })}</span>
+              <span>{formatDate(post.date)}</span>
             </div>
             {post.lastEdited && (
               <div className="flex items-center space-x-1">
@@ -110,6 +106,9 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                 <p className="text-vision-charcoal/60">
                   Content not available. This post may be a draft or the content hasn't been loaded yet.
                 </p>
+                <p className="text-sm text-vision-charcoal/40 mt-2">
+                  If you're using Notion integration, make sure the post has content in the database.
+                </p>
               </div>
             )}
           </CardContent>
@@ -120,7 +119,10 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div className="text-sm text-vision-charcoal/60">
               <p>Written by {post.author}</p>
-              <p>Published on {new Date(post.date).toLocaleDateString()}</p>
+              <p>Published on {formatDate(post.date)}</p>
+              {post.lastEdited && (
+                                  <p>Last edited on {formatDate(post.lastEdited)}</p>
+              )}
             </div>
             <Button variant="outline" asChild>
               <Link href="/blog">

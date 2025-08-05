@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { AspectRatio, AspectRatioContent } from "@/components/ui/aspect-ratio"
 import { Separator } from "@/components/ui/separator"
 import { getProjectBySlug, getStatusColor } from "@/lib/projects"
-import { cn } from "@/lib/utils"
+import { cn, formatDate } from "@/lib/utils"
 
 interface ProjectPageProps {
   params: Promise<{
@@ -53,7 +53,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
             </div>
             <Badge 
               className={cn(
-                "text-sm font-medium ml-4",
+                "text-sm font-medium ml-4 whitespace-nowrap min-w-fit",
                 getStatusColor(project.status)
               )}
             >
@@ -97,11 +97,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
               Project Details
             </CardTitle>
             <CardDescription className="text-vision-charcoal/70">
-              {new Date(project.date).toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-              })}
+              {formatDate(project.date)}
             </CardDescription>
           </CardHeader>
           <CardContent>

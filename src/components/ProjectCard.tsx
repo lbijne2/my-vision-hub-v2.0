@@ -1,7 +1,7 @@
 import Link from "next/link"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { cn } from "@/lib/utils"
+import { cn, formatDate } from "@/lib/utils"
 
 interface Project {
   id: string
@@ -21,14 +21,29 @@ interface ProjectCardProps {
 
 export function ProjectCard({ project, className }: ProjectCardProps) {
   const statusColors = {
-    "In Progress": "bg-blue-100 text-blue-800",
-    "Planning": "bg-yellow-100 text-yellow-800", 
-    "Research": "bg-purple-100 text-purple-800",
-    "Completed": "bg-green-100 text-green-800",
+    "In Progress": "bg-pastel-sky text-vision-charcoal",
+    "Planning": "bg-pastel-peach text-vision-charcoal", 
+    "Research": "bg-pastel-lavender text-vision-charcoal",
+    "Completed": "bg-pastel-mint text-vision-charcoal",
+  }
+
+  const getStatusDisplay = (status: string) => {
+    switch (status.toLowerCase()) {
+      case "in progress":
+        return "In Progress"
+      case "planning":
+        return "Planning"
+      case "research":
+        return "Research"
+      case "completed":
+        return "Completed"
+      default:
+        return status
+    }
   }
 
   return (
-    <Card className={cn("group hover:shadow-lg transition-all duration-300 cursor-pointer", className)}>
+    <Card className={cn("group hover:shadow-lg transition-all duration-300 cursor-pointer flex flex-col h-full", className)}>
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div className="space-y-1">
@@ -42,15 +57,16 @@ export function ProjectCard({ project, className }: ProjectCardProps) {
           <Badge 
             variant="secondary" 
             className={cn(
-              "text-xs font-medium",
+              "text-xs font-medium whitespace-nowrap min-w-fit",
               statusColors[project.status as keyof typeof statusColors] || "bg-gray-100 text-gray-800"
             )}
           >
-            {project.status}
+            {getStatusDisplay(project.status)}
           </Badge>
         </div>
       </CardHeader>
-      <CardContent className="space-y-4">
+      
+      <CardContent className="flex-1 space-y-4">
         <p className="text-sm text-vision-charcoal/80 leading-relaxed">
           {project.description}
         </p>
@@ -74,14 +90,16 @@ export function ProjectCard({ project, className }: ProjectCardProps) {
             </Badge>
           )}
         </div>
-        
+      </CardContent>
+      
+      <div className="px-6 pb-6">
         <div className="flex items-center justify-between text-xs text-vision-charcoal/60">
-          <span>{new Date(project.date).toLocaleDateString()}</span>
+          <span>{formatDate(project.date)}</span>
           <span className="group-hover:text-vision-ochre transition-colors">
             View Project →
           </span>
         </div>
-      </CardContent>
+      </div>
     </Card>
   )
 } 

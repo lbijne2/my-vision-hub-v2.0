@@ -56,6 +56,15 @@ module.exports = {
           ochre: "#e6c28b",
           charcoal: "#333333",
           navy: "#445566",
+        },
+        // Pastel color palette for badges
+        pastel: {
+          cream: "#FAEDCB",
+          mint: "#C9E4DE", 
+          sky: "#C6DEF1",
+          lavender: "#DBCDF0",
+          rose: "#F2C6DE",
+          peach: "#F7D9C4",
         }
       },
       borderRadius: {
@@ -77,7 +86,42 @@ module.exports = {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
       },
+      typography: {
+        DEFAULT: {
+          css: {
+            color: '#333333',
+            a: {
+              color: '#e6c28b',
+              '&:hover': {
+                color: '#d4b075',
+              },
+            },
+            h1: {
+              color: '#333333',
+            },
+            h2: {
+              color: '#333333',
+            },
+            h3: {
+              color: '#333333',
+            },
+            h4: {
+              color: '#333333',
+            },
+            strong: {
+              color: '#333333',
+            },
+            code: {
+              color: '#333333',
+              backgroundColor: '#f9f5ef',
+            },
+            'pre code': {
+              backgroundColor: 'transparent',
+            },
+          },
+        },
+      },
     },
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [require("tailwindcss-animate"), require("@tailwindcss/typography")],
 } 

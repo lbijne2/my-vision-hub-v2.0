@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { getAllProjects, getStatusColor } from "@/lib/projects"
-import { cn } from "@/lib/utils"
+import { cn, formatDate } from "@/lib/utils"
 
 export default function ProjectsPage() {
   const projects = getAllProjects()
@@ -26,7 +26,7 @@ export default function ProjectsPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {projects.map((project) => (
             <Link key={project.id} href={`/projects/${project.slug}`}>
-              <Card className="group hover:shadow-lg transition-all duration-300 cursor-pointer h-full">
+              <Card className="group hover:shadow-lg transition-all duration-300 cursor-pointer flex flex-col h-full">
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between">
                     <div className="space-y-1">
@@ -40,7 +40,7 @@ export default function ProjectsPage() {
                     <Badge 
                       variant="secondary" 
                       className={cn(
-                        "text-xs font-medium",
+                        "text-xs font-medium whitespace-nowrap min-w-fit",
                         getStatusColor(project.status)
                       )}
                     >
@@ -48,7 +48,7 @@ export default function ProjectsPage() {
                     </Badge>
                   </div>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="flex-1 space-y-4">
                   <p className="text-sm text-vision-charcoal/80 leading-relaxed">
                     {project.subtitle}
                   </p>
@@ -72,14 +72,16 @@ export default function ProjectsPage() {
                       </Badge>
                     )}
                   </div>
-                  
+                </CardContent>
+                
+                <div className="px-6 pb-6">
                   <div className="flex items-center justify-between text-xs text-vision-charcoal/60">
-                    <span>{new Date(project.date).toLocaleDateString()}</span>
+                    <span>{formatDate(project.date)}</span>
                     <span className="group-hover:text-vision-ochre transition-colors">
                       View Project →
                     </span>
                   </div>
-                </CardContent>
+                </div>
               </Card>
             </Link>
           ))}
