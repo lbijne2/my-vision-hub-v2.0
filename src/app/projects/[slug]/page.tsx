@@ -4,9 +4,11 @@ import { ArrowLeft, Calendar, Clock, Tag } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { AspectRatio, AspectRatioContent } from "@/components/ui/aspect-ratio"
+import { AspectRatio } from "@/components/ui/aspect-ratio"
 import { Separator } from "@/components/ui/separator"
 import { getProjectBySlug, getStatusColor } from "@/lib/projects"
+import { getRepoInfo } from "@/lib/github"
+import { GitHubRepoCard } from "@/components/GitHubRepoCard"
 import { MarkdownRenderer } from "@/components/MarkdownRenderer"
 import { cn, formatDate, formatDateHeader, formatDateFromISO } from "@/lib/utils"
 
@@ -22,6 +24,16 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
 
   if (!project) {
     notFound()
+  }
+
+  // Fetch GitHub repository data if available
+  let githubRepoData = null
+  if (project.github_repo) {
+    try {
+      githubRepoData = await getRepoInfo(project.github_repo)
+    } catch (error) {
+      console.error('Error fetching GitHub repository data:', error)
+    }
   }
 
   return (
@@ -104,14 +116,54 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
         {project.cover_image_url && (
           <Card className="mb-8 overflow-hidden">
             <AspectRatio ratio={16 / 9}>
-              <AspectRatioContent>
+              <div className="h-full w-full">
                 <img
                   src={project.cover_image_url}
                   alt={project.title}
                   className="w-full h-full object-cover"
                 />
-              </AspectRatioContent>
+              </div>
             </AspectRatio>
+          </Card>
+        )}
+
+        {/* GitHub Repository Section */}
+        {project.github_repo && (
+          <Card className="mb-8">
+            <CardHeader>
+              <CardTitle className="text-2xl text-vision-charcoal">
+                GitHub Repository
+              </CardTitle>
+              <CardDescription className="text-vision-charcoal/70">
+                Source code and development information
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Separator className="mb-6" />
+              
+              {githubRepoData ? (
+                <GitHubRepoCard repoData={githubRepoData} />
+              ) : (
+                <div className="text-center py-8">
+                  <p className="text-vision-charcoal/60 mb-4">
+                    GitHub information unavailable
+                  </p>
+                  <Button
+                    variant="outline"
+                    className="text-vision-ochre border-vision-ochre hover:bg-vision-ochre/10"
+                    asChild
+                  >
+                    <a 
+                      href={`https://github.com/${project.github_repo}`} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                    >
+                      View on GitHub
+                    </a>
+                  </Button>
+                </div>
+              )}
+            </CardContent>
           </Card>
         )}
 

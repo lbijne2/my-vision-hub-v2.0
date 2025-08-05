@@ -27,6 +27,7 @@ export interface Project {
   tags?: string[]
   status: 'active' | 'prototype' | 'archived'
   github_url?: string
+  github_repo?: string
   notion_url?: string
   created_at: string
   updated_at: string

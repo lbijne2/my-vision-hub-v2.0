@@ -15,6 +15,7 @@ function convertLocalProjectToProject(localProject: any): Project {
     tags: localProject.tags,
     status: localProject.status as 'active' | 'prototype' | 'archived',
     github_url: localProject.githubUrl,
+    github_repo: localProject.github_repo,
     notion_url: localProject.notionUrl,
     created_at: localProject.date,
     updated_at: localProject.date,
