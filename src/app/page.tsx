@@ -103,19 +103,19 @@ export default function HomePage() {
                 title: "Resources",
                 description: "Curated tools, frameworks, and references for your projects.",
                 href: "/resources",
-                color: "bg-blue-50 border-blue-200"
+                color: "bg-pastel-sky border-vision-charcoal"
               },
               {
                 title: "Agents",
                 description: "Intelligent workflows and AI-powered tools to enhance your work.",
                 href: "/agents", 
-                color: "bg-purple-50 border-purple-200"
+                color: "bg-pastel-lavender border-vision-charcoal"
               },
               {
                 title: "Dashboard",
                 description: "Private workspace for personal tools and quick access.",
                 href: "/dashboard",
-                color: "bg-green-50 border-green-200"
+                color: "bg-pastel-mint border-vision-charcoal"
               }
             ].map((item) => (
               <Link 

@@ -1,76 +1,59 @@
-# My Vision Hub
+# My Vision Hub v2.0
 
-A personal and evolving digital platform that brings together creative, scientific, and visionary work across multiple domains. It serves as a central command center—both public and private—where projects, tools, agents, and reflections are integrated into a cohesive workspace.
+A personal digital platform showcasing projects, thoughts, and resources at the intersection of technology, medicine, design, and human potential.
 
-## 🎯 Vision
+## 🚀 Current Version: v0.4a
 
-My Vision Hub aims to present and structure ambitious ideas at the intersection of medicine, AI, design, ethics, and the future—offering a space for exploration, collaboration, and inspiration.
+**Latest Features:**
+- ✅ **v0.1**: Basic architecture with homepage and navigation
+- ✅ **v0.2**: Dynamic project pages with markdown support
+- ✅ **v0.3**: Notion integration for blog content management
+- ✅ **v0.4a**: Notion integration for project content management
 
-## 🚀 Features
+## 🛠️ Tech Stack
 
-### Current (v0.3)
-- **Homepage** with hero section and featured projects
-- **Responsive Navigation** with mobile hamburger menu
-- **Dynamic Project Pages** with detailed content and markdown support
-- **Blog System** with Notion integration for content management
-- **Modular Architecture** with clean component structure
-- **Custom Design System** with Vision Hub color palette
-- **Placeholder Pages** for all major sections
-
-### Planned Features
-- **Resource Library** with searchable tools and frameworks
-- **Agentic Workflows** with AI-powered tools
-- **Private Dashboard** with personal workspace
-- **Future Scenarios** with speculative content
-
-## 🛠 Tech Stack
-
-- **Framework**: Next.js 15 with App Router
-- **Styling**: Tailwind CSS with custom design system
-- **UI Components**: shadcn/ui component library
-- **TypeScript**: Full type safety
+- **Framework**: Next.js 15 (App Router)
+- **Styling**: Tailwind CSS with custom Vision Hub color palette
+- **UI Components**: shadcn/ui component system
 - **Content Management**: Notion API integration
-- **Markdown**: Custom markdown renderer
-- **Deployment**: Vercel with preview builds
+- **Markdown Rendering**: react-markdown with custom styling
+- **Deployment**: Vercel (with preview builds)
 
 ## 🎨 Design System
 
-### Colors
-- **Background**: Light beige (`#f9f5ef`)
-- **Primary**: Muted ochre (`#e6c28b`)
-- **Text**: Soft charcoal (`#333`)
-- **Accent**: Muted navy (`#445566`)
+**Color Palette:**
+- Light beige: `#f9f5ef`
+- Muted ochre: `#e6c28b`
+- Soft charcoal: `#333333`
+- Muted navy: `#445566`
+- Pastel accents for badges and highlights
 
-### Typography
-- **Headings**: IBM Plex Serif / Inter
-- **Body**: Inter (clean sans-serif)
+**Typography:**
+- Headings: IBM Plex Serif / Inter
+- Body: Inter (clean sans-serif)
 
 ## 📁 Project Structure
 
 ```
 src/
-├── app/                 # Next.js App Router pages
-│   ├── globals.css     # Global styles and CSS variables
-│   ├── layout.tsx      # Root layout with navigation
-│   ├── page.tsx        # Homepage
-│   ├── projects/       # Project pages
-│   │   ├── page.tsx    # Projects list
-│   │   └── [slug]/     # Individual project pages
-│   └── blog/           # Blog pages
-│       ├── page.tsx    # Blog list
-│       └── [slug]/     # Individual blog posts
-├── components/         # Reusable components
-│   ├── ui/            # shadcn/ui components
-│   ├── Navigation.tsx # Main navigation component
-│   ├── ProjectCard.tsx # Project display component
-│   └── MarkdownRenderer.tsx # Markdown content renderer
-├── lib/               # Utility functions
-│   ├── utils.ts       # Class name utilities
-│   ├── projects.ts    # Project data management
-│   └── notion.ts      # Notion API integration
-└── data/              # Static data files
-    ├── projects.json  # Project data
-    └── posts.json     # Blog post fallback data
+├── app/                    # Next.js App Router pages
+│   ├── blog/              # Blog section with Notion integration
+│   ├── projects/          # Projects section with Notion integration
+│   ├── resources/         # Resources section (coming soon)
+│   ├── agents/           # AI agents section (coming soon)
+│   └── dashboard/        # Private dashboard (coming soon)
+├── components/            # Reusable UI components
+│   ├── ui/               # shadcn/ui components
+│   ├── Navigation.tsx    # Main navigation
+│   ├── ProjectCard.tsx   # Project display component
+│   ├── BlogPostCard.tsx  # Blog post display component
+│   └── MarkdownRenderer.tsx # Enhanced markdown rendering
+├── lib/                  # Utility functions and API clients
+│   ├── notion.ts         # Notion API integration
+│   └── utils.ts          # Helper functions
+└── data/                 # Fallback data (JSON files)
+    ├── projects.json     # Project fallback data
+    └── posts.json        # Blog post fallback data
 ```
 
 ## 🚀 Getting Started
@@ -78,114 +61,165 @@ src/
 ### Prerequisites
 - Node.js 18+ 
 - npm or yarn
-- Notion account (for blog content management)
+- Notion account (for content management)
 
 ### Installation
 
-1. Clone the repository:
+1. **Clone the repository:**
+   ```bash
+   git clone <repository-url>
+   cd my-vision-hub-v2.0
+   ```
+
+2. **Install dependencies:**
+   ```bash
+   npm install
+   ```
+
+3. **Set up environment variables:**
+   Create a `.env.local` file with:
+   ```bash
+   # Notion API Configuration
+   NOTION_API_KEY=your_notion_integration_token
+   NOTION_BLOG_DB_ID=your_blog_database_id
+   NOTION_PROJECT_DB_ID=your_project_database_id
+   ```
+
+4. **Run the development server:**
+   ```bash
+   npm run dev
+   ```
+
+5. **Open your browser:**
+   Navigate to `http://localhost:3000`
+
+## 📝 Content Management
+
+### Blog Content (Notion Integration)
+- **Setup Guide**: [NOTION_SETUP.md](./NOTION_SETUP.md)
+- **Features**: Dynamic blog posts with markdown rendering
+- **Fallback**: Local `posts.json` if Notion is unavailable
+
+### Project Content (Notion Integration)
+- **Setup Guide**: [NOTION_PROJECT_SETUP.md](./NOTION_PROJECT_SETUP.md)
+- **Features**: Dynamic project pages with rich content
+- **Fallback**: Local `projects.json` if Notion is unavailable
+
+## 🎯 Key Features
+
+### ✅ Completed Features
+
+**v0.1 - Foundation**
+- Responsive homepage with hero section
+- Navigation with active link styling
+- Mobile hamburger menu
+- Modular component architecture
+- Vision Hub design system
+
+**v0.2 - Project Pages**
+- Dynamic project detail pages (`/projects/[slug]`)
+- Markdown content rendering
+- Project status badges and tags
+- Responsive project cards
+- Fallback error handling
+
+**v0.3 - Blog Integration**
+- Notion-powered blog content management
+- Dynamic blog post rendering
+- Rich markdown support with custom styling
+- Blog post cards with metadata
+- Loading states and error handling
+
+**v0.4a - Project Integration**
+- Notion-powered project content management
+- Enhanced project detail pages
+- Project status management
+- Cover image support
+- Comprehensive fallback system
+
+### 🚧 Upcoming Features
+
+**v0.4b - Enhanced Project Features**
+- GitHub integration for code previews
+- Project filtering and search
+- Interactive project timelines
+- Related projects suggestions
+
+**v0.5 - Resources Section**
+- Resource library with categorization
+- Download and sharing capabilities
+- Search and filtering
+- User interaction tracking
+
+**v0.6 - AI Agents**
+- Interactive AI agent demos
+- Agent comparison tools
+- Custom agent creation interface
+- Performance analytics
+
+## 🔧 Development
+
+### Available Scripts
+
 ```bash
-git clone <repository-url>
-cd my-vision-hub-v2.0
+npm run dev          # Start development server
+npm run build        # Build for production
+npm run start        # Start production server
+npm run lint         # Run ESLint
 ```
 
-2. Install dependencies:
+### TypeScript
+The project uses TypeScript for type safety. Run type checking with:
 ```bash
-npm install
+npx tsc --noEmit
 ```
 
-3. Set up environment variables (optional for blog):
+### Styling
+- Tailwind CSS for utility-first styling
+- Custom Vision Hub color palette
+- shadcn/ui components for consistency
+- Responsive design throughout
+
+## 🚀 Deployment
+
+### Vercel (Recommended)
+1. Connect your GitHub repository to Vercel
+2. Add environment variables in Vercel dashboard
+3. Deploy automatically on push to main branch
+
+### Environment Variables for Production
 ```bash
-cp NOTION_SETUP.md .env.local
-# Edit .env.local with your Notion API credentials
+NOTION_API_KEY=your_notion_integration_token
+NOTION_BLOG_DB_ID=your_blog_database_id
+NOTION_PROJECT_DB_ID=your_project_database_id
 ```
 
-4. Run the development server:
-```bash
-npm run dev
-```
+## 📚 Documentation
 
-5. Open [http://localhost:3000](http://localhost:3000) in your browser.
+- [Notion Blog Setup](./NOTION_SETUP.md) - Complete guide for blog integration
+- [Notion Project Setup](./NOTION_PROJECT_SETUP.md) - Complete guide for project integration
+- [Overview](./overview.md) - Project vision and architecture
 
-### Build for Production
+## 🤝 Contributing
 
-```bash
-npm run build
-npm start
-```
-
-## 📝 Blog Content Management
-
-The blog system integrates with Notion for content management:
-
-### Setup Notion Integration
-
-1. Follow the setup guide in `NOTION_SETUP.md`
-2. Create a Notion database with the required schema
-3. Configure environment variables
-4. Start publishing blog posts through Notion
-
-### Features
-
-- **Dynamic Content**: Blog posts pulled from Notion database
-- **Fallback System**: Uses local JSON if Notion is unavailable
-- **Markdown Support**: Rich text rendering with custom parser
-- **SEO Friendly**: Proper meta tags and structured data
-- **Responsive Design**: Works on all devices
-
-### Blog Post Schema
-
-Required Notion database properties:
-- `title` (Title)
-- `slug` (Text)
-- `published` (Checkbox)
-- `tags` (Multi-select)
-- `date` (Date)
-- `excerpt` (Text)
-- `author` (Text)
-
-## 📋 Development Guidelines
-
-- **Modular Architecture**: Each section/component lives in its own folder
-- **TypeScript**: Full type safety throughout the codebase
-- **Responsive Design**: Mobile-first approach with Tailwind CSS
-- **Component Isolation**: Each component should be previewable in isolation
-- **Clean Commits**: Well-documented commit messages for version control
-
-## 🎯 Versioning Plan
-
-- **v0.1**: Basic architecture with homepage and navigation ✅
-- **v0.2**: Dynamic project pages with markdown support ✅
-- **v0.3**: Notion integration for blog content management ✅
-- **v0.4**: Add GitHub project previews and Supabase setup
-- **v0.5**: Build Resource Library with search features
-- **v0.6**: Introduce Future Scenarios with visuals
-- **v0.7**: Scaffold Agentic Workflows Module
-- **v0.8**: Add OpenAI-powered tool integration
-- **v0.9**: Build Personal Dashboard UI
-- **v1.0**: Complete role-based permissions and live integrations
-
-## 🔧 Configuration
-
-### Environment Variables
-Create a `.env.local` file for local development:
-```env
-# Notion API Configuration (optional)
-NOTION_API_KEY=your_notion_api_key_here
-NOTION_BLOG_DB_ID=your_notion_database_id_here
-NOTION_DEBUG=false
-```
-
-### Tailwind Configuration
-The project uses a custom Tailwind configuration with Vision Hub colors and extended theme options.
-
-## 📝 Contributing
-
-This is a personal project, but contributions and suggestions are welcome. Please ensure all code follows the established patterns and includes proper TypeScript types.
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Test thoroughly
+5. Submit a pull request
 
 ## 📄 License
 
-This project is for personal use and development.
+This project is licensed under the MIT License.
+
+## 🎯 Roadmap
+
+- **v0.4b**: Enhanced project features (GitHub integration, filtering)
+- **v0.5**: Resources section with library management
+- **v0.6**: AI agents showcase and tools
+- **v0.7**: Dashboard with analytics and management
+- **v1.0**: Full feature set with advanced integrations
 
 ---
 
-**My Vision Hub** - Where Vision Becomes Reality 
+**Built with ❤️ using Next.js, Tailwind CSS, and Notion API** 

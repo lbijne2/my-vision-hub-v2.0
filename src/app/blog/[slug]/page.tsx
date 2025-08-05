@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { getBlogPostBySlug } from "@/lib/notion"
 import { MarkdownRenderer } from "@/components/MarkdownRenderer"
-import { cn, formatDate } from "@/lib/utils"
+import { cn, formatDate, formatDateHeader, formatDateFromISO } from "@/lib/utils"
 
 interface BlogPostPageProps {
   params: Promise<{
@@ -72,12 +72,12 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
             </div>
             <div className="flex items-center space-x-1">
               <Calendar className="h-4 w-4" />
-              <span>{formatDate(post.date)}</span>
+              <span>{formatDateHeader(post.date)}</span>
             </div>
             {post.lastEdited && (
               <div className="flex items-center space-x-1">
                 <Clock className="h-4 w-4" />
-                <span>Edited {new Date(post.lastEdited).toLocaleDateString()}</span>
+                <span>Edited {formatDateFromISO(post.lastEdited)}</span>
               </div>
             )}
           </div>
@@ -121,7 +121,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
               <p>Written by {post.author}</p>
               <p>Published on {formatDate(post.date)}</p>
               {post.lastEdited && (
-                                  <p>Last edited on {formatDate(post.lastEdited)}</p>
+                                  <p>Last edited on {formatDateFromISO(post.lastEdited)}</p>
               )}
             </div>
             <Button variant="outline" asChild>

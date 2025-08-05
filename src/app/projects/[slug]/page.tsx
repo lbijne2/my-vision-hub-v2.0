@@ -1,13 +1,14 @@
 import { notFound } from "next/navigation"
 import Link from "next/link"
-import { ArrowLeft } from "lucide-react"
+import { ArrowLeft, Calendar, Clock } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { AspectRatio, AspectRatioContent } from "@/components/ui/aspect-ratio"
 import { Separator } from "@/components/ui/separator"
-import { getProjectBySlug, getStatusColor } from "@/lib/projects"
-import { cn, formatDate } from "@/lib/utils"
+import { getProjectBySlug, getStatusColor } from "@/lib/notion"
+import { MarkdownRenderer } from "@/components/MarkdownRenderer"
+import { cn, formatDate, formatDateHeader, formatDateFromISO } from "@/lib/utils"
 
 interface ProjectPageProps {
   params: Promise<{
@@ -17,7 +18,7 @@ interface ProjectPageProps {
 
 export default async function ProjectPage({ params }: ProjectPageProps) {
   const { slug } = await params
-  const project = getProjectBySlug(slug)
+  const project = await getProjectBySlug(slug)
 
   if (!project) {
     notFound()
@@ -47,18 +48,34 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
               <h1 className="text-4xl font-bold text-vision-charcoal mb-2">
                 {project.title}
               </h1>
-              <p className="text-xl text-vision-charcoal/70 mb-4 leading-relaxed">
-                {project.subtitle}
-              </p>
+              {project.subtitle && (
+                <p className="text-xl text-vision-charcoal/70 mb-4 leading-relaxed">
+                  {project.subtitle}
+                </p>
+              )}
             </div>
             <Badge 
               className={cn(
-                "text-sm font-medium ml-4 whitespace-nowrap min-w-fit",
+                "text-sm font-medium ml-6 whitespace-nowrap min-w-fit",
                 getStatusColor(project.status)
               )}
             >
               {project.status}
             </Badge>
+          </div>
+
+          {/* Meta Information */}
+          <div className="flex flex-wrap items-center gap-4 text-sm text-vision-charcoal/60 mb-6">
+            <div className="flex items-center space-x-1">
+              <Calendar className="h-4 w-4" />
+              <span>{formatDateHeader(project.date)}</span>
+            </div>
+            {project.lastEdited && (
+              <div className="flex items-center space-x-1">
+                <Clock className="h-4 w-4" />
+                <span>Updated {formatDateFromISO(project.lastEdited)}</span>
+              </div>
+            )}
           </div>
 
           {/* Tags */}
@@ -97,89 +114,45 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
               Project Details
             </CardTitle>
             <CardDescription className="text-vision-charcoal/70">
-              {formatDate(project.date)}
+              {project.category}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <Separator className="mb-6" />
             
             {/* Content */}
-            <div className="prose prose-lg max-w-none">
-              <div className="text-vision-charcoal/80 leading-relaxed space-y-6">
-                {project.content.split('\n\n').map((paragraph, index) => {
-                  // Handle markdown-style headers
-                  if (paragraph.startsWith('## ')) {
-                    return (
-                      <h2 key={index} className="text-2xl font-semibold text-vision-charcoal mt-8 mb-4">
-                        {paragraph.replace('## ', '')}
-                      </h2>
-                    )
-                  }
-                  if (paragraph.startsWith('### ')) {
-                    return (
-                      <h3 key={index} className="text-xl font-semibold text-vision-charcoal mt-6 mb-3">
-                        {paragraph.replace('### ', '')}
-                      </h3>
-                    )
-                  }
-                  
-                  // Handle lists
-                  if (paragraph.startsWith('- ')) {
-                    const items = paragraph.split('\n').filter(line => line.startsWith('- '))
-                    return (
-                      <ul key={index} className="list-disc list-inside space-y-1 ml-4">
-                        {items.map((item, itemIndex) => (
-                          <li key={itemIndex} className="text-vision-charcoal/80">
-                            {item.replace('- ', '')}
-                          </li>
-                        ))}
-                      </ul>
-                    )
-                  }
-                  
-                  // Handle numbered lists
-                  if (paragraph.match(/^\d+\./)) {
-                    const items = paragraph.split('\n').filter(line => line.match(/^\d+\./))
-                    return (
-                      <ol key={index} className="list-decimal list-inside space-y-1 ml-4">
-                        {items.map((item, itemIndex) => (
-                          <li key={itemIndex} className="text-vision-charcoal/80">
-                            {item.replace(/^\d+\.\s*/, '')}
-                          </li>
-                        ))}
-                      </ol>
-                    )
-                  }
-                  
-                  // Handle bold text
-                  if (paragraph.includes('**')) {
-                    const parts = paragraph.split('**')
-                    return (
-                      <p key={index} className="text-vision-charcoal/80">
-                        {parts.map((part, partIndex) => 
-                          partIndex % 2 === 1 ? (
-                            <strong key={partIndex} className="font-semibold text-vision-charcoal">
-                              {part}
-                            </strong>
-                          ) : (
-                            part
-                          )
-                        )}
-                      </p>
-                    )
-                  }
-                  
-                  // Regular paragraph
-                  return (
-                    <p key={index} className="text-vision-charcoal/80">
-                      {paragraph}
-                    </p>
-                  )
-                })}
+            {project.content ? (
+              <MarkdownRenderer content={project.content} />
+            ) : (
+              <div className="text-center py-12">
+                <p className="text-vision-charcoal/60">
+                  Content not available. This project may be in development or the content hasn't been loaded yet.
+                </p>
+                <p className="text-sm text-vision-charcoal/40 mt-2">
+                  If you're using Notion integration, make sure the project has content in the database.
+                </p>
               </div>
-            </div>
+            )}
           </CardContent>
         </Card>
+
+        {/* Footer */}
+        <div className="mt-8 pt-8 border-t border-vision-border">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div className="text-sm text-vision-charcoal/60">
+              <p>Category: {project.category}</p>
+              <p>Started on {formatDate(project.date)}</p>
+              {project.lastEdited && (
+                                  <p>Last updated on {formatDateFromISO(project.lastEdited)}</p>
+              )}
+            </div>
+            <Button variant="outline" asChild>
+              <Link href="/projects">
+                View All Projects
+              </Link>
+            </Button>
+          </div>
+        </div>
       </div>
     </div>
   )

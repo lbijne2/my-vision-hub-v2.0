@@ -1,6 +1,7 @@
 import { Client } from '@notionhq/client'
 import { NotionToMarkdown } from 'notion-to-md'
 import postsData from '@/data/posts.json'
+import projectsData from '@/data/projects.json'
 
 // Types for blog posts
 export interface BlogPost {
@@ -12,6 +13,23 @@ export interface BlogPost {
   date: string
   tags: string[]
   status: 'published' | 'draft'
+  content?: string
+  lastEdited?: string
+}
+
+// Types for projects
+export interface Project {
+  id: string
+  title: string
+  slug: string
+  subtitle?: string
+  description: string
+  category: string
+  status: string
+  image?: string
+  coverImage?: string
+  tags: string[]
+  date: string
   content?: string
   lastEdited?: string
 }
@@ -54,6 +72,19 @@ function getTextFromProperty(property: any): string {
 function getTagsFromProperty(property: any): string[] {
   if (!property || !property.multi_select) return []
   return property.multi_select.map((tag: any) => tag.name)
+}
+
+// Helper function to get status color for projects
+export function getStatusColor(status: string): string {
+  const statusColors = {
+    "in progress": "bg-pastel-sky text-vision-charcoal",
+    "planning": "bg-pastel-peach text-vision-charcoal",
+    "research": "bg-pastel-lavender text-vision-charcoal",
+    "completed": "bg-pastel-mint text-vision-charcoal",
+    "idea": "bg-pastel-cream text-vision-charcoal",
+  }
+  
+  return statusColors[status as keyof typeof statusColors] || "bg-pastel-cream text-vision-charcoal"
 }
 
 // Fetch all published blog posts from Notion
@@ -187,5 +218,129 @@ export async function getBlogPostSlugs(): Promise<string[]> {
   } catch (error) {
     console.error('Error fetching blog post slugs:', error)
     return postsData.map((post: any) => post.slug)
+  }
+}
+
+// Fetch all projects from Notion
+export async function getAllProjects(): Promise<Project[]> {
+  try {
+    // Check if Notion is configured
+    if (!process.env.NOTION_API_KEY || !process.env.NOTION_PROJECT_DB_ID) {
+      console.warn('Notion API not configured for projects, using fallback data')
+      return projectsData as Project[]
+    }
+
+    const response = await notion.databases.query({
+      database_id: process.env.NOTION_PROJECT_DB_ID,
+      sorts: [
+        {
+          property: 'title',
+          direction: 'ascending',
+        },
+      ],
+    })
+
+    const projects: Project[] = response.results.map((page: any) => {
+      // Type guard to ensure page has properties
+      if (!page.properties) {
+        console.warn('Project page missing properties:', page.id)
+        return null
+      }
+      
+      const properties = page.properties
+      
+      return {
+        id: page.id,
+        title: getTextFromProperty(properties.title),
+        slug: getTextFromProperty(properties.slug),
+        subtitle: getTextFromProperty(properties.subtitle),
+        description: getTextFromProperty(properties.description),
+        category: getTextFromProperty(properties.category),
+        status: properties.status?.select?.name || 'idea',
+        image: properties.image?.files?.[0]?.file?.url || properties.image?.files?.[0]?.external?.url || '',
+        coverImage: properties.coverImage?.files?.[0]?.file?.url || properties.coverImage?.files?.[0]?.external?.url || '',
+        tags: getTagsFromProperty(properties.tags),
+        date: properties.date?.date?.start || new Date().toISOString(),
+        lastEdited: page.last_edited_time,
+      }
+    }).filter(Boolean) as Project[]
+
+    return projects
+  } catch (error) {
+    console.error('Error fetching projects from Notion:', error)
+    console.warn('Using fallback data')
+    return projectsData as Project[]
+  }
+}
+
+// Fetch a single project by slug
+export async function getProjectBySlug(slug: string): Promise<Project | null> {
+  try {
+    // Check if Notion is configured
+    if (!process.env.NOTION_API_KEY || !process.env.NOTION_PROJECT_DB_ID) {
+      console.warn('Notion API not configured for projects, using fallback data')
+      const fallbackProject = projectsData.find((project: any) => project.slug === slug)
+      return fallbackProject as Project || null
+    }
+
+    // First, find the page by slug
+    const response = await notion.databases.query({
+      database_id: process.env.NOTION_PROJECT_DB_ID,
+      filter: {
+        property: 'slug',
+        rich_text: {
+          equals: slug,
+        },
+      },
+    })
+
+    if (response.results.length === 0) {
+      return null
+    }
+
+    const page = response.results[0] as any
+    // Type guard to ensure page has properties
+    if (!page.properties) {
+      console.warn('Project page missing properties:', page.id)
+      return null
+    }
+
+    const properties = page.properties
+
+    // Get the page content
+    const mdBlocks = await notionToMd.pageToMarkdown(page.id)
+    const content = notionToMd.toMarkdownString(mdBlocks)
+
+    return {
+      id: page.id,
+      title: getTextFromProperty(properties.title),
+      slug: getTextFromProperty(properties.slug),
+      subtitle: getTextFromProperty(properties.subtitle),
+      description: getTextFromProperty(properties.description),
+      category: getTextFromProperty(properties.category),
+      status: properties.status?.select?.name || 'idea',
+      image: properties.image?.files?.[0]?.file?.url || properties.image?.files?.[0]?.external?.url || '',
+      coverImage: properties.coverImage?.files?.[0]?.file?.url || properties.coverImage?.files?.[0]?.external?.url || '',
+      tags: getTagsFromProperty(properties.tags),
+      date: properties.date?.date?.start || new Date().toISOString(),
+      content: content.parent,
+      lastEdited: page.last_edited_time,
+    }
+  } catch (error) {
+    console.error('Error fetching project from Notion:', error)
+    console.warn('Using fallback data')
+    const fallbackProject = projectsData.find((project: any) => project.slug === slug)
+    return fallbackProject as Project || null
+  }
+}
+
+// Get all project slugs for static generation
+export async function getProjectSlugs(): Promise<string[]> {
+  try {
+    const projects = await getAllProjects()
+    return projects.map(project => project.slug)
+  } catch (error) {
+    console.error('Error fetching project slugs:', error)
+    return projectsData.map((project: any) => project.slug)
   }
 } 

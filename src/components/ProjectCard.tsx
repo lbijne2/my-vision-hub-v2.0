@@ -2,6 +2,7 @@ import Link from "next/link"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { cn, formatDate } from "@/lib/utils"
+import { getStatusColor } from "@/lib/projects"
 
 interface Project {
   id: string
@@ -20,13 +21,6 @@ interface ProjectCardProps {
 }
 
 export function ProjectCard({ project, className }: ProjectCardProps) {
-  const statusColors = {
-    "In Progress": "bg-pastel-sky text-vision-charcoal",
-    "Planning": "bg-pastel-peach text-vision-charcoal", 
-    "Research": "bg-pastel-lavender text-vision-charcoal",
-    "Completed": "bg-pastel-mint text-vision-charcoal",
-  }
-
   const getStatusDisplay = (status: string) => {
     switch (status.toLowerCase()) {
       case "in progress":
@@ -57,8 +51,8 @@ export function ProjectCard({ project, className }: ProjectCardProps) {
           <Badge 
             variant="secondary" 
             className={cn(
-              "text-xs font-medium whitespace-nowrap min-w-fit",
-              statusColors[project.status as keyof typeof statusColors] || "bg-gray-100 text-gray-800"
+              "text-xs font-medium whitespace-nowrap min-w-fit ml-3",
+              getStatusColor(project.status)
             )}
           >
             {getStatusDisplay(project.status)}
