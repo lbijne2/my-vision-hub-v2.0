@@ -1,0 +1,32 @@
+[
+  {
+    "id": "1",
+    "title": "AI-Powered Medical Diagnostics",
+    "description": "Exploring the intersection of artificial intelligence and medical imaging to improve diagnostic accuracy and patient outcomes.",
+    "category": "Medicine & AI",
+    "status": "In Progress",
+    "image": "/api/placeholder/400/250",
+    "tags": ["AI", "Medicine", "Machine Learning", "Healthcare"],
+    "date": "2024-01-15"
+  },
+  {
+    "id": "2", 
+    "title": "Ethical Design Framework",
+    "description": "Developing a comprehensive framework for integrating ethical considerations into AI system design and deployment.",
+    "category": "Design & Ethics",
+    "status": "Planning",
+    "image": "/api/placeholder/400/250",
+    "tags": ["Ethics", "Design", "AI", "Framework"],
+    "date": "2024-01-10"
+  },
+  {
+    "id": "3",
+    "title": "Future of Human-AI Collaboration",
+    "description": "Researching and prototyping new paradigms for human-AI collaboration in creative and analytical workflows.",
+    "category": "Future Studies",
+    "status": "Research",
+    "image": "/api/placeholder/400/250", 
+    "tags": ["AI", "Collaboration", "Future", "Workflow"],
+    "date": "2024-01-05"
+  }
+] 

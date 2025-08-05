@@ -1,0 +1,32 @@
+[
+  {
+    "id": "1",
+    "title": "The Future of AI in Healthcare: A Personal Perspective",
+    "excerpt": "Exploring the transformative potential of AI in medical diagnostics and patient care, from both technical and ethical standpoints.",
+    "author": "Vision Hub",
+    "date": "2024-01-20",
+    "tags": ["AI", "Healthcare", "Ethics", "Future"],
+    "status": "published",
+    "readTime": "8 min read"
+  },
+  {
+    "id": "2",
+    "title": "Designing for the Future: Principles for Ethical AI",
+    "excerpt": "A framework for integrating ethical considerations into AI system design, with practical guidelines for developers and designers.",
+    "author": "Vision Hub", 
+    "date": "2024-01-18",
+    "tags": ["Design", "Ethics", "AI", "Framework"],
+    "status": "published",
+    "readTime": "12 min read"
+  },
+  {
+    "id": "3",
+    "title": "Collaborative Intelligence: Humans and AI Working Together",
+    "excerpt": "How we can design systems that leverage the strengths of both human creativity and AI capabilities for better outcomes.",
+    "author": "Vision Hub",
+    "date": "2024-01-15", 
+    "tags": ["Collaboration", "AI", "Creativity", "Workflow"],
+    "status": "draft",
+    "readTime": "10 min read"
+  }
+] 
