@@ -4,7 +4,7 @@ import postsData from '@/data/posts.json'
 import projectsData from '@/data/projects.json'
 import milestonesData from '@/data/milestones.json'
 import { supabase, isSupabaseAvailable, logSupabaseError } from './supabase'
-import type { BlogPost, Project, Milestone } from '@/types'
+import type { BlogPost, Project, Milestone, Agent } from '@/types'
 
 // Types for blog posts (keeping for backward compatibility)
 export interface BlogPostLegacy {
@@ -775,4 +775,237 @@ function getMilestoneColor(type: string): string {
   }
   
   return colorMap[type.toLowerCase()] || colorMap.default
+}
+
+// Helper function to convert local JSON agent data to Agent type
+function convertLocalAgentToAgent(localAgent: any): Agent {
+  return {
+    id: localAgent.id,
+    name: localAgent.name,
+    slug: localAgent.slug,
+    status: localAgent.status as 'active' | 'prototype' | 'idea',
+    category: localAgent.category,
+    description: localAgent.description,
+    inputs: localAgent.inputs,
+    tags: localAgent.tags,
+    example_uses: localAgent.exampleUse ? [localAgent.exampleUse] : [],
+    trigger_type: localAgent.triggerType,
+    created_at: localAgent.date,
+    updated_at: localAgent.date,
+    relatedProjects: ['ai-medical-diagnostics', 'ethical-design-framework'],
+    relatedBlogPosts: ['future-of-ai-in-healthcare', 'designing-ethical-ai'],
+    relatedMilestones: ['milestone-1'],
+    relatedAgents: ['clinical-summarizer', 'literature-assistant'],
+  }
+}
+
+// Fetch all published agents from Notion
+export async function getAllAgentsFromNotion(): Promise<Agent[]> {
+  try {
+    // Try Notion first if configured
+    if (process.env.NOTION_API_KEY && process.env.NOTION_AGENTS_DB_ID) {
+      console.log('Notion integration configured, fetching agents from Notion...')
+      console.log('Database ID:', process.env.NOTION_AGENTS_DB_ID)
+      
+      const response = await notion.databases.query({
+        database_id: process.env.NOTION_AGENTS_DB_ID,
+        filter: {
+          property: 'published',
+          checkbox: {
+            equals: true,
+          },
+        },
+        sorts: [
+          {
+            property: 'created_at',
+            direction: 'descending',
+          },
+        ],
+      })
+
+      console.log('Notion response received, processing agents...')
+      console.log('Number of results:', response.results.length)
+
+      const agentPromises = response.results.map(async (page: any) => {
+        if (!page.properties) {
+          console.warn('Agent page missing properties:', page.id)
+          return null
+        }
+        
+        const properties = page.properties
+        
+        // Get the page content
+        const mdBlocks = await notionToMd.pageToMarkdown(page.id)
+        const content = notionToMd.toMarkdownString(mdBlocks)
+
+        // Fetch related content
+        console.log('  - Fetching related content for agent...')
+        console.log('  - Available properties:', Object.keys(properties))
+        
+        let relatedProjects = await fetchRelatedContent(properties.projects)
+        let relatedBlogPosts = await fetchRelatedContent(properties.blogPosts)
+        let relatedMilestones = await fetchRelatedContent(properties.milestones)
+        let relatedAgents = await fetchRelatedContent(properties.agents)
+
+        console.log(`Agent "${getTextFromProperty(properties.name)}" related content:`, {
+          projects: relatedProjects,
+          blogPosts: relatedBlogPosts,
+          milestones: relatedMilestones,
+          agents: relatedAgents
+        })
+
+        // If all related content arrays are empty, use fallback data
+        const hasRelatedContent = relatedProjects.length > 0 || relatedBlogPosts.length > 0 || 
+                                 relatedMilestones.length > 0 || relatedAgents.length > 0
+        
+        if (!hasRelatedContent) {
+          console.log('  - No related content found in Notion, using fallback data')
+          relatedProjects = ['ai-medical-diagnostics', 'ethical-design-framework']
+          relatedBlogPosts = ['future-of-ai-in-healthcare', 'designing-ethical-ai']
+          relatedMilestones = ['milestone-1']
+          relatedAgents = ['clinical-summarizer', 'literature-assistant']
+        }
+
+        return {
+          id: page.id,
+          name: getTextFromProperty(properties.name),
+          slug: getTextFromProperty(properties.slug),
+          status: properties.status?.select?.name || 'idea',
+          category: getTextFromProperty(properties.category),
+          description: getTextFromProperty(properties.description),
+          content: content.parent, // Use the page content as content
+          inputs: properties.inputs?.multi_select?.map((input: any) => input.name) || [],
+          tags: getTagsFromProperty(properties.tags),
+          example_uses: properties.exampleUses?.rich_text?.map((text: any) => text.plain_text) || [],
+          trigger_type: properties.triggerType?.select?.name || 'manual',
+          created_at: properties.createdAt?.date?.start || new Date().toISOString(),
+          updated_at: page.last_edited_time,
+          relatedProjects,
+          relatedBlogPosts,
+          relatedMilestones,
+          relatedAgents,
+        }
+      })
+      
+      const agentResults = await Promise.all(agentPromises)
+      const agents: Agent[] = agentResults.filter(Boolean) as Agent[]
+
+      if (agents.length > 0) {
+        console.log(`Loaded ${agents.length} agents from Notion`)
+        return agents
+      } else {
+        console.log('No published agents found in Notion database')
+      }
+    } else {
+      console.log('Notion integration not configured - missing NOTION_API_KEY or NOTION_AGENTS_DB_ID')
+    }
+  } catch (error) {
+    console.error('Error fetching agents from Notion:', error)
+  }
+
+  // Fallback to local data
+  console.log('Using fallback agent data from local JSON')
+  const agentData = await import('@/data/agents.json')
+  return agentData.default.map(convertLocalAgentToAgent)
+}
+
+// Fetch a single agent by slug from Notion
+export async function getAgentBySlugFromNotion(slug: string): Promise<Agent | null> {
+  try {
+    // Try Notion first if configured
+    if (process.env.NOTION_API_KEY && process.env.NOTION_AGENTS_DB_ID) {
+      const response = await notion.databases.query({
+        database_id: process.env.NOTION_AGENTS_DB_ID,
+        filter: {
+          and: [
+            {
+              property: 'published',
+              checkbox: {
+                equals: true,
+              },
+            },
+            {
+              property: 'slug',
+              rich_text: {
+                equals: slug,
+              },
+            },
+          ],
+        },
+      })
+
+      if (response.results.length === 0) {
+        return null
+      }
+
+      const page = response.results[0] as any
+      if (!page.properties) {
+        console.warn('Agent page missing properties:', page.id)
+        return null
+      }
+
+      const properties = page.properties
+
+      // Get the page content
+      const mdBlocks = await notionToMd.pageToMarkdown(page.id)
+      const content = notionToMd.toMarkdownString(mdBlocks)
+
+      // Fetch related content
+      console.log('  - Fetching related content for agent...')
+      console.log('  - Available properties:', Object.keys(properties))
+      
+      let relatedProjects = await fetchRelatedContent(properties.projects)
+      let relatedBlogPosts = await fetchRelatedContent(properties.blogPosts)
+      let relatedMilestones = await fetchRelatedContent(properties.milestones)
+      let relatedAgents = await fetchRelatedContent(properties.agents)
+
+      console.log(`Agent "${getTextFromProperty(properties.name)}" related content:`, {
+        projects: relatedProjects,
+        blogPosts: relatedBlogPosts,
+        milestones: relatedMilestones,
+        agents: relatedAgents
+      })
+
+      // If all related content arrays are empty, use fallback data
+      const hasRelatedContent = relatedProjects.length > 0 || relatedBlogPosts.length > 0 || 
+                               relatedMilestones.length > 0 || relatedAgents.length > 0
+      
+      if (!hasRelatedContent) {
+        console.log('  - No related content found in Notion, using fallback data')
+        relatedProjects = ['ai-medical-diagnostics', 'ethical-design-framework']
+        relatedBlogPosts = ['future-of-ai-in-healthcare', 'designing-ethical-ai']
+        relatedMilestones = ['milestone-1']
+        relatedAgents = ['clinical-summarizer', 'literature-assistant']
+      }
+
+      return {
+        id: page.id,
+        name: getTextFromProperty(properties.name),
+        slug: getTextFromProperty(properties.slug),
+        status: properties.status?.select?.name || 'idea',
+        category: getTextFromProperty(properties.category),
+        description: getTextFromProperty(properties.description),
+        content: content.parent, // Use the page content as content
+        inputs: properties.inputs?.multi_select?.map((input: any) => input.name) || [],
+        tags: getTagsFromProperty(properties.tags),
+        example_uses: properties.exampleUses?.rich_text?.map((text: any) => text.plain_text) || [],
+        trigger_type: properties.triggerType?.select?.name || 'manual',
+        created_at: properties.createdAt?.date?.start || new Date().toISOString(),
+        updated_at: page.last_edited_time,
+        relatedProjects,
+        relatedBlogPosts,
+        relatedMilestones,
+        relatedAgents,
+      }
+    } else {
+      console.log('Notion integration not configured - missing NOTION_API_KEY or NOTION_AGENTS_DB_ID')
+    }
+  } catch (error) {
+    console.error('Error fetching agent from Notion:', error)
+  }
+
+  // Fallback to local data
+  const agentData = await import('@/data/agents.json')
+  const fallbackAgent = agentData.default.find((agent: any) => agent.slug === slug)
+  return fallbackAgent ? convertLocalAgentToAgent(fallbackAgent) : null
 } 

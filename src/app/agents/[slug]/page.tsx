@@ -114,7 +114,9 @@ export default async function AgentPage({ params }: AgentPageProps) {
                 <Separator className="mb-6" />
                 
                 {/* Content */}
-                {agent.description ? (
+                {agent.content ? (
+                  <MarkdownRenderer content={agent.content} />
+                ) : agent.description ? (
                   <MarkdownRenderer content={agent.description} />
                 ) : (
                   <div className="text-center py-12">
@@ -122,7 +124,7 @@ export default async function AgentPage({ params }: AgentPageProps) {
                       Content not available. This agent may be in development or the content hasn't been loaded yet.
                     </p>
                     <p className="text-sm text-vision-charcoal/40 mt-2">
-                      If you're using Supabase integration, make sure the agent has content in the database.
+                      If you're using Notion integration, make sure the agent has content in the page body.
                     </p>
                   </div>
                 )}

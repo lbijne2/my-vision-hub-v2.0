@@ -309,10 +309,35 @@ NOTION_PROJECT_DB_ID=your_project_database_id
 
 ## 📚 Documentation
 
-- [Supabase Setup Guide](./SUPABASE_SETUP.md) - Complete guide for database setup
-- [Notion Blog Setup](./NOTION_SETUP.md) - Complete guide for blog integration
-- [Notion Project Setup](./NOTION_PROJECT_SETUP.md) - Complete guide for project integration
-- [Overview](./overview.md) - Project vision and architecture
+Comprehensive documentation is available in the [`docs/`](./docs/) directory:
+
+### 🎯 Core Documentation
+- **[Project Overview](./docs/core/overview.md)** - Vision, objectives, and platform architecture
+- **[Architecture Guide](./docs/core/architecture.md)** - Technical architecture and system design
+- **[Cursor Guidelines](./docs/core/cursor-guidelines.md)** - AI-assisted development principles
+- **[AI Development Guide](./docs/core/ai-development-guide.md)** - Using documentation with AI tools
+
+### 🛠️ Setup & Configuration
+- **[Getting Started](./docs/setup/getting-started.md)** - Quick start guide for developers
+- **[Environment Setup](./docs/setup/environment-setup.md)** - Environment variables and configuration
+- **[Database Setup](./docs/setup/database-setup.md)** - Supabase database configuration
+- **[Notion Integration](./docs/setup/notion-integration.md)** - Notion API setup and usage
+
+### 📋 Feature Documentation
+- **[Projects Module](./docs/features/projects.md)** - Project management and display
+- **[Blog Module](./docs/features/blog.md)** - Blog content management
+- **[Agents Module](./docs/features/agents.md)** - AI agents and workflows
+- **[Resources Module](./docs/features/resources.md)** - Resource library management
+- **[GitHub Integration](./docs/features/github-integration.md)** - GitHub repository integration
+
+### 🔧 Technical Reference
+- **[API Reference](./docs/technical/api-reference.md)** - API endpoints and data structures
+- **[Database Schema](./docs/technical/database-schema.md)** - Database tables and relationships
+- **[Deployment Guide](./docs/technical/deployment.md)** - Production deployment instructions
+
+### 📖 History & Migration
+- **[Version History](./docs/history/version-history.md)** - Release notes and changelog
+- **[Migration Guides](./docs/migrations/)** - Database and feature migrations
 
 ## 🤝 Contributing
 

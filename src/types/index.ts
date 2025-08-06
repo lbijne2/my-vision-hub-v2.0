@@ -7,6 +7,7 @@ export interface Agent {
   status: 'active' | 'prototype' | 'idea'
   category: string
   description?: string
+  content?: string // Markdown content from Notion page body
   inputs?: string[]
   tags?: string[]
   example_uses?: string[]
