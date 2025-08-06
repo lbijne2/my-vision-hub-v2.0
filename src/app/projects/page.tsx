@@ -3,9 +3,17 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { getAllProjects } from "@/lib/projects"
 import { ProjectCard } from "@/components/ProjectCard"
+import { ProjectFilters } from "@/components/ProjectFilters"
+import type { Project } from '@/types'
 
 export default async function ProjectsPage() {
-  const projects = await getAllProjects()
+  let projects: Project[] = []
+  try {
+    projects = await getAllProjects()
+  } catch (error) {
+    console.error('Error fetching projects:', error)
+    projects = []
+  }
 
   return (
     <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8">
@@ -24,7 +32,7 @@ export default async function ProjectsPage() {
         {/* Projects Grid */}
         {projects.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {projects.map((project) => (
+            {projects.map((project: Project) => (
               <ProjectCard key={project.id} project={project} />
             ))}
           </div>

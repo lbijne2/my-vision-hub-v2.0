@@ -26,6 +26,7 @@ export interface Project {
   cover_image_url?: string
   tags?: string[]
   status: 'active' | 'prototype' | 'archived'
+  visible?: boolean // Maps to Notion 'published' checkbox property
   github_url?: string
   github_repo?: string
   notion_url?: string

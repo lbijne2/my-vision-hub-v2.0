@@ -5,6 +5,24 @@ import type { Project } from '@/types'
 
 // Helper function to convert local JSON data to Project type
 function convertLocalProjectToProject(localProject: any): Project {
+  // Map status values to match the Project interface
+  const mapStatus = (status: string): 'active' | 'prototype' | 'archived' => {
+    switch (status.toLowerCase()) {
+      case 'in progress':
+      case 'active':
+        return 'active'
+      case 'planning':
+      case 'research':
+      case 'prototype':
+        return 'prototype'
+      case 'completed':
+      case 'archived':
+        return 'archived'
+      default:
+        return 'prototype'
+    }
+  }
+
   return {
     id: localProject.id,
     title: localProject.title,
@@ -13,7 +31,8 @@ function convertLocalProjectToProject(localProject: any): Project {
     description: localProject.description,
     cover_image_url: localProject.coverImage,
     tags: localProject.tags,
-    status: localProject.status as 'active' | 'prototype' | 'archived',
+    status: mapStatus(localProject.status),
+    visible: localProject.visible !== undefined ? localProject.visible : true,
     github_url: localProject.githubUrl,
     github_repo: localProject.github_repo,
     notion_url: localProject.notionUrl,
@@ -27,7 +46,8 @@ export async function getAllProjects(): Promise<Project[]> {
     // Try Notion first if configured
     const notionProjects = await getNotionProjects()
     if (notionProjects && notionProjects.length > 0) {
-      return notionProjects
+      // Filter by visibility - only return projects where visible is true or undefined
+      return notionProjects.filter(project => project.visible !== false)
     }
   } catch (error) {
     console.error('Error fetching projects from Notion:', error)
@@ -44,8 +64,8 @@ export async function getAllProjects(): Promise<Project[]> {
       if (error) {
         logSupabaseError('getAllProjects', error)
       } else if (data && data.length > 0) {
-        console.log('Using Supabase fallback for projects')
-        return data
+        // Filter by visibility - only return projects where visible is true or undefined
+        return data.filter(project => project.visible !== false)
       }
     }
   } catch (error) {
@@ -53,8 +73,9 @@ export async function getAllProjects(): Promise<Project[]> {
   }
 
   // Fallback to local data
-  console.warn('Using fallback project data')
-  return projectsData.map(convertLocalProjectToProject)
+  const localProjects = projectsData.map(convertLocalProjectToProject)
+  // Filter by visibility - only return projects where visible is true or undefined
+  return localProjects.filter(project => project.visible !== false)
 }
 
 export async function getProjectBySlug(slug: string): Promise<Project | null> {

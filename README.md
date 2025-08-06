@@ -2,7 +2,7 @@
 
 A personal digital platform showcasing projects, thoughts, and resources at the intersection of technology, medicine, design, and human potential.
 
-## 🚀 Current Version: v0.4b
+## 🚀 Current Version: v0.4e
 
 **Latest Features:**
 - ✅ **v0.1**: Basic architecture with homepage and navigation
@@ -11,6 +11,8 @@ A personal digital platform showcasing projects, thoughts, and resources at the 
 - ✅ **v0.4a**: Notion integration for project content management
 - ✅ **v0.4c**: Agentic workflows module with AI agents showcase
 - ✅ **v0.4b**: Full Supabase integration with graceful fallbacks
+- ✅ **v0.4d**: GitHub Integration for Project
+- ✅ **v0.4e**: Interactive Project Filtering & Search System
 
 ## 🛠️ Tech Stack
 
@@ -41,7 +43,7 @@ A personal digital platform showcasing projects, thoughts, and resources at the 
 src/
 ├── app/                    # Next.js App Router pages
 │   ├── blog/              # Blog section with Supabase integration
-│   ├── projects/          # Projects section with Supabase integration
+│   ├── projects/          # Projects section with filtering & search
 │   ├── agents/            # AI agents section with Supabase integration
 │   ├── resources/         # Resources section (coming soon)
 │   └── dashboard/        # Private dashboard (coming soon)
@@ -49,6 +51,7 @@ src/
 │   ├── ui/               # shadcn/ui components
 │   ├── Navigation.tsx    # Main navigation
 │   ├── ProjectCard.tsx   # Project display component
+│   ├── ProjectFilters.tsx # Project filtering & search system
 │   ├── BlogPostCard.tsx  # Blog post display component
 │   └── MarkdownRenderer.tsx # Enhanced markdown rendering
 ├── lib/                  # Utility functions and API clients
@@ -169,21 +172,39 @@ src/
 - Type-safe database operations
 - Performance optimized queries
 
+**v0.4d - GitHub Integration**
+- GitHub repository linking and display
+- Repository metadata integration (stars, forks, language)
+- Code preview capabilities with syntax highlighting
+- GitHub API integration for real-time repository data
+- Repository status indicators and badges
+- Direct links to GitHub repositories from project cards
+
+**v0.4e - Project Filtering & Search** 🆕
+- **Interactive Search Bar**: Real-time search across titles, subtitles, descriptions, and tags
+- **Tag-Based Filtering**: Multi-select tag filtering with visual feedback
+- **Status Filters**: Filter by Active, Prototype, or Archived status
+- **Results Counter**: Shows filtered vs total project count
+- **Clear All Filters**: One-click reset functionality
+- **Responsive Design**: Smooth animations and Vision Hub design language
+- **Performance Optimized**: Efficient filtering with useMemo hooks
+
 ### 🚧 Upcoming Features
 
-**v0.4b - Enhanced Project Features**
-- GitHub integration for code previews
-- Project filtering and search
+**v0.5 - Enhanced Project Features**
+- Advanced GitHub integration with code snippets
 - Interactive project timelines
 - Related projects suggestions
+- Advanced sorting options
+- Project analytics and insights
 
-**v0.5 - Resources Section**
+**v0.6 - Resources Section**
 - Resource library with categorization
 - Download and sharing capabilities
 - Search and filtering
 - User interaction tracking
 
-**v0.6 - Enhanced Agents**
+**v0.7 - Enhanced Agents**
 - Interactive agent demos and testing
 - Custom agent creation interface
 - Agent performance analytics
@@ -307,10 +328,10 @@ This project is licensed under the MIT License.
 
 ## 🎯 Roadmap
 
-- **v0.4b**: Enhanced project features (GitHub integration, filtering)
-- **v0.5**: Resources section with library management
-- **v0.6**: Enhanced agents with OpenAI integration
-- **v0.7**: Dashboard with analytics and management
+- **v0.5**: Enhanced project features (advanced GitHub integration, timelines, analytics)
+- **v0.6**: Resources section with library management
+- **v0.7**: Enhanced agents with OpenAI integration
+- **v0.8**: Dashboard with analytics and management
 - **v1.0**: Full feature set with advanced integrations
 
 ---

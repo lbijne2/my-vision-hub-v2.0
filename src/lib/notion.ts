@@ -306,6 +306,7 @@ export async function getAllProjects(): Promise<Project[]> {
           cover_image_url: properties.coverImage?.files?.[0]?.file?.url || properties.coverImage?.files?.[0]?.external?.url || '',
           tags: getTagsFromProperty(properties.tags),
           status: properties.status?.select?.name || 'idea',
+          visible: properties.published?.checkbox !== false, // Maps to Notion 'published' checkbox
           github_url: properties.githubUrl?.url || '',
           github_repo: getTextFromProperty(properties.githubRepo) || '',
           notion_url: page.url,
@@ -348,6 +349,7 @@ export async function getAllProjects(): Promise<Project[]> {
     cover_image_url: project.coverImage,
     tags: project.tags,
     status: project.status as 'active' | 'prototype' | 'archived',
+    visible: project.visible !== undefined ? project.visible : true,
     github_url: undefined, // Not available in local data
     notion_url: undefined, // Not available in local data
     created_at: project.date,
