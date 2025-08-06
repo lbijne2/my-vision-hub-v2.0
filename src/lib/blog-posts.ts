@@ -16,6 +16,10 @@ function convertLocalPostToBlogPost(localPost: any): BlogPost {
     notion_url: localPost.notionUrl,
     created_at: localPost.date,
     updated_at: localPost.date,
+    relatedProjects: ['ai-medical-diagnostics', 'ethical-design-framework'],
+    relatedBlogPosts: [],
+    relatedMilestones: ['milestone-1'],
+    relatedAgents: ['template-generator', 'clinical-summarizer'],
   }
 }
 

@@ -65,6 +65,12 @@ module.exports = {
           lavender: "#DBCDF0",
           rose: "#F2C6DE",
           peach: "#F7D9C4",
+          sage: "#D1E7DD",
+          green: "#D4EDDA",
+          orange: "#F8D7DA",
+          pink: "#F8D7DA",
+          purple: "#E2D9F3",
+          blue: "#D1ECF1",
         }
       },
       borderRadius: {

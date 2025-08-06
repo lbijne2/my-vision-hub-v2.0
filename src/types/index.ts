@@ -13,6 +13,10 @@ export interface Agent {
   trigger_type?: string
   created_at: string
   updated_at: string
+  relatedProjects?: string[]
+  relatedBlogPosts?: string[]
+  relatedMilestones?: string[]
+  relatedAgents?: string[]
 }
 
 export interface Project {
@@ -32,6 +36,10 @@ export interface Project {
   notion_url?: string
   created_at: string
   updated_at: string
+  relatedProjects?: string[]
+  relatedBlogPosts?: string[]
+  relatedMilestones?: string[]
+  relatedAgents?: string[]
 }
 
 export interface BlogPost {
@@ -47,6 +55,21 @@ export interface BlogPost {
   notion_url?: string
   created_at: string
   updated_at: string
+  relatedProjects?: string[]
+  relatedBlogPosts?: string[]
+  relatedMilestones?: string[]
+  relatedAgents?: string[]
+}
+
+export interface Milestone {
+  id: string
+  title: string
+  type: string
+  date: string
+  description: string
+  icon: string
+  color: string
+  linked_items?: string[] // e.g. ["project:ai-medical-diagnostics", "agent:template-generator"]
 }
 
 // Database schema types

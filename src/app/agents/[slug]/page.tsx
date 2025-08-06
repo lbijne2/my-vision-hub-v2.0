@@ -8,6 +8,7 @@ import { Separator } from "@/components/ui/separator"
 import { getAgentBySlug, getAgentStatusColor } from "@/lib/agents"
 import { MarkdownRenderer } from "@/components/MarkdownRenderer"
 import { WidescreenToggle } from "@/components/WidescreenToggle"
+import RelatedContent from "@/components/RelatedContent"
 import { cn, formatDate, formatDateHeader, formatDateFromISO } from "@/lib/utils"
 import type { Agent } from "@/types"
 
@@ -206,6 +207,14 @@ export default async function AgentPage({ params }: AgentPageProps) {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Related Content */}
+            <RelatedContent
+              relatedProjects={agent.relatedProjects}
+              relatedBlogPosts={agent.relatedBlogPosts}
+              relatedMilestones={agent.relatedMilestones}
+              relatedAgents={agent.relatedAgents}
+            />
           </div>
         </div>
 

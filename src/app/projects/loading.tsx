@@ -11,8 +11,24 @@ export default function ProjectsPageLoading() {
           <Skeleton className="h-6 w-96 mx-auto" />
         </div>
 
+        {/* Filters Skeleton */}
+        <div className="mb-8">
+          <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
+            <div className="flex gap-2">
+              <Skeleton className="h-10 w-32" />
+              <Skeleton className="h-10 w-24" />
+              <Skeleton className="h-10 w-28" />
+            </div>
+            <Skeleton className="h-10 w-64" />
+          </div>
+          <div className="mt-4 flex items-center justify-between">
+            <Skeleton className="h-4 w-32" />
+            <Skeleton className="h-4 w-24" />
+          </div>
+        </div>
+
         {/* Projects Grid Skeleton */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {Array.from({ length: 6 }).map((_, index) => (
             <Card key={index} className="h-full">
               <CardHeader className="pb-3">
@@ -27,14 +43,14 @@ export default function ProjectsPageLoading() {
               <CardContent className="space-y-4">
                 <Skeleton className="h-4 w-full" />
                 <Skeleton className="h-4 w-3/4" />
-                <div className="flex gap-2">
+                <div className="flex gap-2 flex-wrap">
                   <Skeleton className="h-6 w-12" />
                   <Skeleton className="h-6 w-16" />
                   <Skeleton className="h-6 w-14" />
                 </div>
-                <div className="flex justify-between">
+                <div className="flex justify-between items-center">
                   <Skeleton className="h-4 w-20" />
-                  <Skeleton className="h-4 w-24" />
+                  <Skeleton className="h-9 w-24" />
                 </div>
               </CardContent>
             </Card>

@@ -8,6 +8,7 @@ import { Separator } from "@/components/ui/separator"
 import { getBlogPostBySlug } from "@/lib/notion"
 import { MarkdownRenderer } from "@/components/MarkdownRenderer"
 import { WidescreenToggle } from "@/components/WidescreenToggle"
+import RelatedContent from "@/components/RelatedContent"
 import { cn, formatDate, formatDateHeader, formatDateFromISO } from "@/lib/utils"
 import type { BlogPost } from "@/types"
 
@@ -24,6 +25,15 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
   if (!post) {
     notFound()
   }
+
+  // Debug logging
+  console.log('Blog post data:', {
+    title: post.title,
+    relatedProjects: post.relatedProjects,
+    relatedBlogPosts: post.relatedBlogPosts,
+    relatedMilestones: post.relatedMilestones,
+    relatedAgents: post.relatedAgents
+  })
 
   return (
     <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8">
@@ -115,6 +125,15 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
             )}
           </CardContent>
         </Card>
+
+        {/* Related Content */}
+        <RelatedContent
+          relatedProjects={post.relatedProjects}
+          relatedBlogPosts={post.relatedBlogPosts}
+          relatedMilestones={post.relatedMilestones}
+          relatedAgents={post.relatedAgents}
+          className="mt-8"
+        />
 
         {/* Footer */}
         <div className="mt-8 pt-8 border-t border-vision-border">

@@ -1,0 +1,42 @@
+[
+  {
+    "id": "milestone-1",
+    "title": "Vision Hub v2.0 Launch",
+    "type": "milestone",
+    "date": "2024-01-30",
+    "description": "Official launch of the redesigned Vision Hub platform with enhanced features and improved user experience.",
+    "icon": "🚀",
+    "color": "bg-pastel-purple",
+    "linked_items": ["project:ethical-design-framework", "agent:template-generator"]
+  },
+  {
+    "id": "milestone-2", 
+    "title": "First AI Agent Integration",
+    "type": "milestone",
+    "date": "2024-01-22",
+    "description": "Successfully integrated the first AI agent into the Vision Hub ecosystem, marking a significant milestone in our AI journey.",
+    "icon": "🤖",
+    "color": "bg-pastel-blue",
+    "linked_items": ["agent:template-generator", "agent:clinical-summarizer"]
+  },
+  {
+    "id": "milestone-3",
+    "title": "Ethical AI Framework Development",
+    "type": "milestone", 
+    "date": "2024-01-12",
+    "description": "Completed the initial development of our comprehensive ethical AI design framework, establishing guidelines for responsible AI development.",
+    "icon": "⚖️",
+    "color": "bg-pastel-sage",
+    "linked_items": ["project:ethical-design-framework", "post:designing-ethical-ai"]
+  },
+  {
+    "id": "milestone-4",
+    "title": "Healthcare AI Research Initiative",
+    "type": "milestone",
+    "date": "2024-01-08", 
+    "description": "Launched our research initiative focused on AI applications in healthcare, beginning with medical diagnostics and patient care.",
+    "icon": "🏥",
+    "color": "bg-pastel-mint",
+    "linked_items": ["project:ai-medical-diagnostics", "post:future-of-ai-in-healthcare", "agent:clinical-summarizer"]
+  }
+] 

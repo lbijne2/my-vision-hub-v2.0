@@ -11,6 +11,7 @@ import { getRepoInfo } from "@/lib/github"
 import { GitHubRepoCard } from "@/components/GitHubRepoCard"
 import { MarkdownRenderer } from "@/components/MarkdownRenderer"
 import { WidescreenToggle } from "@/components/WidescreenToggle"
+import RelatedContent from "@/components/RelatedContent"
 import { cn, formatDate, formatDateHeader, formatDateFromISO } from "@/lib/utils"
 
 interface ProjectPageProps {
@@ -26,6 +27,15 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
   if (!project) {
     notFound()
   }
+
+  // Debug logging
+  console.log('Project data:', {
+    title: project.title,
+    relatedProjects: project.relatedProjects,
+    relatedBlogPosts: project.relatedBlogPosts,
+    relatedMilestones: project.relatedMilestones,
+    relatedAgents: project.relatedAgents
+  })
 
   // Fetch GitHub repository data if available
   let githubRepoData = null
@@ -214,7 +224,10 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
               <CardContent className="space-y-4">
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-vision-charcoal/60">Status:</span>
-                  <Badge className={getStatusColor(project.status)}>
+                  <Badge 
+                    variant="secondary" 
+                    className={getStatusColor(project.status)}
+                  >
                     {project.status}
                   </Badge>
                 </div>
@@ -262,7 +275,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
             )}
 
             {/* Links */}
-            {(project.github_url || project.notion_url) && (
+            {/* {(project.github_url || project.notion_url) && (
               <Card>
                 <CardHeader>
                   <CardTitle className="text-lg text-vision-charcoal">
@@ -298,7 +311,15 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
                   )}
                 </CardContent>
               </Card>
-            )}
+            )} */}
+
+            {/* Related Content */}
+            <RelatedContent
+              relatedProjects={project.relatedProjects}
+              relatedBlogPosts={project.relatedBlogPosts}
+              relatedMilestones={project.relatedMilestones}
+              relatedAgents={project.relatedAgents}
+            />
           </div>
         </div>
 

@@ -38,6 +38,10 @@ function convertLocalProjectToProject(localProject: any): Project {
     notion_url: localProject.notionUrl,
     created_at: localProject.date,
     updated_at: localProject.date,
+    relatedProjects: [],
+    relatedBlogPosts: ['future-of-ai-in-healthcare', 'designing-ethical-ai'],
+    relatedMilestones: ['milestone-1'],
+    relatedAgents: ['template-generator', 'clinical-summarizer'],
   }
 }
 
