@@ -76,4 +76,47 @@
   .vision-border {
     @apply border-vision-navy/20;
   }
+}
+
+/* Widescreen mode styles */
+@layer utilities {
+  /* Add smooth transitions to main content containers */
+  .max-w-4xl,
+  .max-w-6xl {
+    transition: max-width 0.3s ease-in-out;
+  }
+  
+  /* Widescreen mode - make selectors more specific */
+  html.widescreen .max-w-4xl {
+    max-width: min(95vw, 1400px) !important;
+  }
+  
+  html.widescreen .max-w-6xl {
+    max-width: 98vw !important;
+  }
+  
+  /* Maintain two-column layout in widescreen mode */
+  html.widescreen .grid-cols-1.lg\:grid-cols-3 {
+    grid-template-columns: 2fr 1fr !important;
+  }
+  
+  /* Ensure columns maintain their relative widths */
+  html.widescreen .lg\:col-span-2 {
+    grid-column: 1 / 2 !important;
+  }
+  
+  html.widescreen .lg\:col-span-1 {
+    grid-column: 2 / 3 !important;
+  }
+  
+  /* Improve spacing in widescreen mode */
+  html.widescreen .px-4.sm\:px-6.lg\:px-8 {
+    padding-left: 2rem !important;
+    padding-right: 2rem !important;
+  }
+  
+  /* Ensure grid gap is maintained */
+  html.widescreen .gap-8 {
+    gap: 2rem !important;
+  }
 } 

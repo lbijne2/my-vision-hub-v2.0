@@ -1,4 +1,4 @@
-import { Github, Star, GitBranch, Calendar, ExternalLink } from "lucide-react"
+import { Github, Star, GitBranch, Calendar, Eye } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -12,25 +12,25 @@ interface GitHubRepoCardProps {
 
 export function GitHubRepoCard({ repoData, className }: GitHubRepoCardProps) {
   return (
-    <Card className={cn("bg-pastel-sky/20 border-vision-border shadow-sm", className)}>
+    <Card className={cn(
+      "bg-pastel-sky/20 border-vision-border shadow-sm transition-all duration-200 hover:shadow-lg group",
+      className
+    )}>
       <CardHeader className="pb-4">
-        <div className="flex items-start justify-between">
-          <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-4">
+          <div className="p-1">
             <Github className="h-5 w-5 text-vision-charcoal" />
-            <CardTitle className="text-lg text-vision-charcoal">
-              {repoData.name}
-            </CardTitle>
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="text-vision-ochre hover:text-vision-ochre/80 hover:bg-vision-ochre/10"
-            asChild
-          >
-            <a href={repoData.url} target="_blank" rel="noopener noreferrer">
-              <ExternalLink className="h-4 w-4" />
+          <CardTitle className="text-base text-vision-ochre group-hover:text-vision-ochre/80 transition-colors">
+            <a 
+              href={repoData.url} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="hover:underline"
+            >
+              {repoData.name}
             </a>
-          </Button>
+          </CardTitle>
         </div>
         {repoData.description && (
           <CardDescription className="text-vision-charcoal/70 text-sm leading-relaxed">
@@ -41,15 +41,34 @@ export function GitHubRepoCard({ repoData, className }: GitHubRepoCardProps) {
       <CardContent className="pt-0">
         <div className="space-y-4">
           {/* Stats */}
-          <div className="flex flex-wrap gap-3">
-            <div className="flex items-center space-x-1 text-sm text-vision-charcoal/70">
+          <div className="flex flex-wrap gap-4 text-yellow-500">
+            <a
+              href={`${repoData.url}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center space-x-1 text-vision-charcoal/70 hover:text-vision-ochre hover:underline transition-colors"
+            >
+              <Eye className="h-4 w-4 text-yellow-500" />
+              <span>{repoData.watchers.toLocaleString()}</span>
+            </a>
+            <a
+              href={`${repoData.url}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center space-x-1 text-vision-charcoal/70 hover:text-vision-ochre hover:underline transition-colors"
+            >
               <Star className="h-4 w-4 text-yellow-500" />
               <span>{repoData.stars.toLocaleString()}</span>
-            </div>
-            <div className="flex items-center space-x-1 text-sm text-vision-charcoal/70">
+            </a>
+            <a
+              href={`${repoData.url}/fork`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center space-x-1 text-vision-charcoal/70 hover:text-vision-ochre hover:underline transition-colors"
+            >
               <GitBranch className="h-4 w-4 text-vision-ochre" />
               <span>{repoData.forks.toLocaleString()}</span>
-            </div>
+            </a>
             {repoData.language && (
               <Badge 
                 variant="outline" 

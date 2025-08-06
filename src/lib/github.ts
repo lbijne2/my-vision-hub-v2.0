@@ -3,6 +3,7 @@ export interface GitHubRepoData {
   description: string | null
   stars: number
   forks: number
+  watchers: number
   lastCommit: string
   url: string
   language: string | null
@@ -88,6 +89,7 @@ export async function getRepoInfo(repo: string): Promise<GitHubRepoData | null> 
       description: repoData.description,
       stars: repoData.stargazers_count,
       forks: repoData.forks_count,
+      watchers: repoData.watchers_count,
       lastCommit,
       url: repoData.html_url,
       language: repoData.language,

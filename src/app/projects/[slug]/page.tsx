@@ -10,6 +10,7 @@ import { getProjectBySlug, getStatusColor } from "@/lib/projects"
 import { getRepoInfo } from "@/lib/github"
 import { GitHubRepoCard } from "@/components/GitHubRepoCard"
 import { MarkdownRenderer } from "@/components/MarkdownRenderer"
+import { WidescreenToggle } from "@/components/WidescreenToggle"
 import { cn, formatDate, formatDateHeader, formatDateFromISO } from "@/lib/utils"
 
 interface ProjectPageProps {
@@ -127,74 +128,179 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
           </Card>
         )}
 
-        {/* GitHub Repository Section */}
-        {project.github_repo && (
-          <Card className="mb-8">
-            <CardHeader>
-              <CardTitle className="text-2xl text-vision-charcoal">
-                GitHub Repository
-              </CardTitle>
-              <CardDescription className="text-vision-charcoal/70">
-                Source code and development information
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Separator className="mb-6" />
-              
-              {githubRepoData ? (
-                <GitHubRepoCard repoData={githubRepoData} />
-              ) : (
-                <div className="text-center py-8">
-                  <p className="text-vision-charcoal/60 mb-4">
-                    GitHub information unavailable
-                  </p>
-                  <Button
-                    variant="outline"
-                    className="text-vision-ochre border-vision-ochre hover:bg-vision-ochre/10"
-                    asChild
-                  >
-                    <a 
-                      href={`https://github.com/${project.github_repo}`} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                    >
-                      View on GitHub
-                    </a>
-                  </Button>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        )}
+
 
         {/* Project Content */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-2xl text-vision-charcoal">
-              Project Details
-            </CardTitle>
-            <CardDescription className="text-vision-charcoal/70">
-              {project.subtitle}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Separator className="mb-6" />
-            
-            {/* Content */}
-            {project.content ? (
-              <MarkdownRenderer content={project.content} />
-            ) : (
-              <div className="text-center py-12">
-                <p className="text-vision-charcoal/60">
-                  Content not available. This project may be in development or the content hasn't been loaded yet.
-                </p>
-                <p className="text-sm text-vision-charcoal/40 mt-2">
-                  If you're using Supabase integration, make sure the project has content in the database.
-                </p>
-              </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Main Content */}
+          <div className="lg:col-span-2">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-2xl text-vision-charcoal">
+                  Project Details
+                </CardTitle>
+                <CardDescription className="text-vision-charcoal/70">
+                  {project.subtitle}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Separator className="mb-6" />
+                
+                {/* Content */}
+                {project.content ? (
+                  <MarkdownRenderer content={project.content} />
+                ) : (
+                  <div className="text-center py-12">
+                    <p className="text-vision-charcoal/60">
+                      Content not available. This project may be in development or the content hasn't been loaded yet.
+                    </p>
+                    <p className="text-sm text-vision-charcoal/40 mt-2">
+                      If you're using Notion integration, make sure the project has content in the database.
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Sidebar */}
+          <div className="space-y-6">
+            {/* GitHub Repository Section */}
+            {project.github_repo && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg text-vision-charcoal">
+                    GitHub Repository
+                  </CardTitle>
+                  <CardDescription>
+                    Source code and development information
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {githubRepoData ? (
+                    <GitHubRepoCard repoData={githubRepoData} />
+                  ) : (
+                    <div className="text-center py-4">
+                      <p className="text-vision-charcoal/60 mb-4 text-sm">
+                        GitHub information unavailable
+                      </p>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="text-vision-ochre border-vision-ochre hover:bg-vision-ochre/10"
+                        asChild
+                      >
+                        <a 
+                          href={`https://github.com/${project.github_repo}`} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                        >
+                          View on GitHub
+                        </a>
+                      </Button>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
             )}
-          </CardContent>
-        </Card>
+
+            {/* Project Status & Info */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg text-vision-charcoal">
+                  Project Status
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-vision-charcoal/60">Status:</span>
+                  <Badge className={getStatusColor(project.status)}>
+                    {project.status}
+                  </Badge>
+                </div>
+                {project.category && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-vision-charcoal/60">Category:</span>
+                    <span className="text-sm text-vision-charcoal/80">{project.category}</span>
+                  </div>
+                )}
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-vision-charcoal/60">Created:</span>
+                  <span className="text-sm text-vision-charcoal/80">{formatDate(project.created_at)}</span>
+                </div>
+                {project.updated_at && project.updated_at !== project.created_at && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-vision-charcoal/60">Updated:</span>
+                    <span className="text-sm text-vision-charcoal/80">{formatDate(project.updated_at)}</span>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Tags */}
+            {project.tags && project.tags.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg text-vision-charcoal">
+                    Tags
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex flex-wrap gap-2">
+                    {project.tags.map((tag) => (
+                      <Badge 
+                        key={tag} 
+                        variant="outline" 
+                        className="text-xs bg-vision-beige border-vision-border text-vision-charcoal/70"
+                      >
+                        {tag}
+                      </Badge>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Links */}
+            {(project.github_url || project.notion_url) && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg text-vision-charcoal">
+                    Links
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {project.github_url && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-vision-charcoal/60">GitHub:</span>
+                      <a 
+                        href={project.github_url} 
+                        className="text-sm text-vision-ochre hover:underline" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                      >
+                        View Repository
+                      </a>
+                    </div>
+                  )}
+                  {project.notion_url && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-vision-charcoal/60">Notion:</span>
+                      <a 
+                        href={project.notion_url} 
+                        className="text-sm text-vision-ochre hover:underline" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                      >
+                        View Document
+                      </a>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        </div>
 
         {/* Footer */}
         <div className="mt-8 pt-8 border-t border-vision-border">
@@ -211,11 +317,14 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
                 <p>Notion: <a href={project.notion_url} className="text-vision-ochre hover:underline" target="_blank" rel="noopener noreferrer">View Document</a></p>
               )}
             </div>
-            <Button variant="outline" asChild>
-              <Link href="/projects">
-                View All Projects
-              </Link>
-            </Button>
+            <div className="flex items-center gap-3">
+              <WidescreenToggle />
+              <Button variant="outline" asChild>
+                <Link href="/projects">
+                  View All Projects
+                </Link>
+              </Button>
+            </div>
           </div>
         </div>
       </div>

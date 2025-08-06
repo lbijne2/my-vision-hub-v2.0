@@ -11,7 +11,7 @@
     "coverImage": "/api/placeholder/1200/600",
     "tags": ["AI", "Medicine", "Machine Learning", "Healthcare", "Diagnostics"],
     "date": "2024-01-15",
-    "github_repo": "lbijne2/medxchange-core",
+    "github_repo": "lbijne2/MedXChange-Hub-v2.0",
     "content": "This project explores the transformative potential of artificial intelligence in medical diagnostics. By leveraging advanced machine learning algorithms and computer vision techniques, we're developing systems that can assist healthcare professionals in making more accurate and timely diagnoses.\n\n## Key Objectives\n\n- Improve diagnostic accuracy through AI-assisted image analysis\n- Reduce diagnostic time and healthcare costs\n- Enhance early detection of diseases\n- Support healthcare professionals with decision-making tools\n\n## Technical Approach\n\nOur approach combines state-of-the-art deep learning models with clinical expertise to create systems that are both technically advanced and clinically relevant. We're focusing on:\n\n- **Computer Vision**: Advanced image processing for medical imaging\n- **Natural Language Processing**: Analysis of clinical notes and reports\n- **Predictive Analytics**: Risk assessment and early warning systems\n- **Clinical Integration**: Seamless workflow integration with existing systems\n\n## Current Status\n\nThe project is currently in the research and development phase, with initial prototypes being tested in controlled environments. We're collaborating with medical professionals to ensure our solutions meet real-world clinical needs."
   },
   {
@@ -26,7 +26,7 @@
     "coverImage": "/api/placeholder/1200/600",
     "tags": ["Ethics", "Design", "AI", "Framework", "Responsible AI"],
     "date": "2024-01-10",
-    "github_repo": "lbijne2/ethical-ai-framework",
+    "github_repo": "lbijne2/my-vision-hub-v2.0",
     "content": "As AI systems become increasingly integrated into our daily lives, the need for ethical design principles has never been more critical. This project aims to create a comprehensive framework that guides developers, designers, and organizations in building AI systems that are not only effective but also ethical and responsible.\n\n## Framework Components\n\n### 1. Ethical Principles\n- **Transparency**: Clear understanding of how systems make decisions\n- **Fairness**: Ensuring equitable treatment across different groups\n- **Privacy**: Protecting user data and maintaining confidentiality\n- **Accountability**: Clear responsibility for system outcomes\n- **Beneficence**: Ensuring systems do more good than harm\n\n### 2. Design Process\n\nThe framework provides a structured approach to ethical AI design:\n\n1. **Assessment Phase**: Identify potential ethical risks and impacts\n2. **Design Phase**: Integrate ethical considerations into system architecture\n3. **Testing Phase**: Validate ethical compliance through various scenarios\n4. **Deployment Phase**: Monitor and maintain ethical standards\n5. **Evaluation Phase**: Continuous assessment and improvement\n\n## Implementation Strategy\n\nWe're developing practical tools and guidelines that can be easily integrated into existing development workflows, making ethical design accessible to teams of all sizes and technical backgrounds."
   },
   {

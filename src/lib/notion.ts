@@ -307,6 +307,7 @@ export async function getAllProjects(): Promise<Project[]> {
           tags: getTagsFromProperty(properties.tags),
           status: properties.status?.select?.name || 'idea',
           github_url: properties.githubUrl?.url || '',
+          github_repo: getTextFromProperty(properties.githubRepo) || '',
           notion_url: page.url,
           created_at: properties.date?.date?.start || new Date().toISOString(),
           updated_at: page.last_edited_time,
@@ -385,22 +386,23 @@ export async function getProjectBySlug(slug: string): Promise<Project | null> {
       const mdBlocks = await notionToMd.pageToMarkdown(page.id)
       const content = notionToMd.toMarkdownString(mdBlocks)
 
-      return {
-        id: page.id,
-        title: getTextFromProperty(properties.title),
-        slug: getTextFromProperty(properties.slug),
-        subtitle: getTextFromProperty(properties.subtitle),
-        category: getTextFromProperty(properties.category),
-        description: getTextFromProperty(properties.description),
-        content: content.parent,
-        cover_image_url: properties.coverImage?.files?.[0]?.file?.url || properties.coverImage?.files?.[0]?.external?.url || '',
-        tags: getTagsFromProperty(properties.tags),
-        status: properties.status?.select?.name || 'idea',
-        github_url: properties.githubUrl?.url || '',
-        notion_url: page.url,
-        created_at: properties.date?.date?.start || new Date().toISOString(),
-        updated_at: page.last_edited_time,
-      }
+              return {
+          id: page.id,
+          title: getTextFromProperty(properties.title),
+          slug: getTextFromProperty(properties.slug),
+          subtitle: getTextFromProperty(properties.subtitle),
+          category: getTextFromProperty(properties.category),
+          description: getTextFromProperty(properties.description),
+          content: content.parent,
+          cover_image_url: properties.coverImage?.files?.[0]?.file?.url || properties.coverImage?.files?.[0]?.external?.url || '',
+          tags: getTagsFromProperty(properties.tags),
+          status: properties.status?.select?.name || 'idea',
+          github_url: properties.githubUrl?.url || '',
+          github_repo: getTextFromProperty(properties.githubRepo) || '',
+          notion_url: page.url,
+          created_at: properties.date?.date?.start || new Date().toISOString(),
+          updated_at: page.last_edited_time,
+        }
     }
 
     // Try Supabase as fallback if available

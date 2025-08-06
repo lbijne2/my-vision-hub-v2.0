@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { getAgentBySlug, getAgentStatusColor } from "@/lib/agents"
 import { MarkdownRenderer } from "@/components/MarkdownRenderer"
+import { WidescreenToggle } from "@/components/WidescreenToggle"
 import { cn, formatDate, formatDateHeader, formatDateFromISO } from "@/lib/utils"
 import type { Agent } from "@/types"
 
@@ -216,11 +217,14 @@ export default async function AgentPage({ params }: AgentPageProps) {
               <p>Trigger Type: {agent.trigger_type || 'manual'}</p>
               <p>Created on {formatDate(agent.created_at)}</p>
             </div>
-            <Button variant="outline" asChild>
-              <Link href="/agents">
-                View All Agents
-              </Link>
-            </Button>
+            <div className="flex items-center gap-3">
+              <WidescreenToggle />
+              <Button variant="outline" asChild>
+                <Link href="/agents">
+                  View All Agents
+                </Link>
+              </Button>
+            </div>
           </div>
         </div>
       </div>

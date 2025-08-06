@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { getBlogPostBySlug } from "@/lib/notion"
 import { MarkdownRenderer } from "@/components/MarkdownRenderer"
+import { WidescreenToggle } from "@/components/WidescreenToggle"
 import { cn, formatDate, formatDateHeader, formatDateFromISO } from "@/lib/utils"
 import type { BlogPost } from "@/types"
 
@@ -128,11 +129,14 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                 <p>Notion: <a href={post.notion_url} className="text-vision-ochre hover:underline" target="_blank" rel="noopener noreferrer">View Document</a></p>
               )}
             </div>
-            <Button variant="outline" asChild>
-              <Link href="/blog">
-                View All Posts
-              </Link>
-            </Button>
+            <div className="flex items-center gap-3">
+              <WidescreenToggle />
+              <Button variant="outline" asChild>
+                <Link href="/blog">
+                  View All Posts
+                </Link>
+              </Button>
+            </div>
           </div>
         </div>
       </div>
