@@ -150,10 +150,10 @@ function convertLocalPostToBlogPost(localPost: any): BlogPost {
     notion_url: localPost.notionUrl,
     created_at: localPost.date,
     updated_at: localPost.date,
-    relatedProjects: [],
-    relatedBlogPosts: [],
-    relatedMilestones: [],
-    relatedAgents: [],
+          relatedProjects: [],
+      relatedBlogPosts: [],
+      relatedMilestones: [],
+      relatedAgents: []
   }
 }
 
@@ -312,17 +312,8 @@ export async function getBlogPostBySlug(slug: string): Promise<BlogPost | null> 
         agents: relatedAgents
       })
 
-      // If all related content arrays are empty, use fallback data
-      const hasRelatedContent = relatedProjects.length > 0 || relatedBlogPosts.length > 0 || 
-                               relatedMilestones.length > 0 || relatedAgents.length > 0
-      
-      if (!hasRelatedContent) {
-        console.log('  - No related content found in Notion, using fallback data')
-        relatedProjects = ['ai-medical-diagnostics', 'ethical-design-framework']
-        relatedBlogPosts = []
-        relatedMilestones = ['milestone-1']
-        relatedAgents = ['template-generator', 'clinical-summarizer']
-      }
+      // Only show related content if it actually exists in Notion
+      // No fallback data - if no relations exist, show empty arrays
 
       return {
         id: page.id,
@@ -340,7 +331,7 @@ export async function getBlogPostBySlug(slug: string): Promise<BlogPost | null> 
         relatedProjects,
         relatedBlogPosts,
         relatedMilestones,
-        relatedAgents,
+        relatedAgents
       }
     }
 
@@ -371,10 +362,10 @@ export async function getBlogPostBySlug(slug: string): Promise<BlogPost | null> 
     // Add related content for local data
     return {
       ...convertedPost,
-      relatedProjects: ['ai-medical-diagnostics', 'ethical-design-framework'],
+      relatedProjects: [],
       relatedBlogPosts: [],
-      relatedMilestones: ['milestone-1'],
-      relatedAgents: ['template-generator', 'clinical-summarizer'],
+      relatedMilestones: [],
+      relatedAgents: []
     }
   }
   return null
@@ -526,17 +517,8 @@ export async function getProjectBySlug(slug: string): Promise<Project | null> {
         agents: relatedAgents
       })
 
-      // If all related content arrays are empty, use fallback data
-      const hasRelatedContent = relatedProjects.length > 0 || relatedBlogPosts.length > 0 || 
-                               relatedMilestones.length > 0 || relatedAgents.length > 0
-      
-      if (!hasRelatedContent) {
-        console.log('  - No related content found in Notion, using fallback data')
-        relatedProjects = []
-        relatedBlogPosts = ['future-of-ai-in-healthcare', 'designing-ethical-ai']
-        relatedMilestones = ['milestone-1']
-        relatedAgents = ['template-generator', 'clinical-summarizer']
-      }
+      // Only show related content if it actually exists in Notion
+      // No fallback data - if no relations exist, show empty arrays
 
       return {
         id: page.id,
@@ -557,7 +539,7 @@ export async function getProjectBySlug(slug: string): Promise<Project | null> {
         relatedProjects,
         relatedBlogPosts,
         relatedMilestones,
-        relatedAgents,
+        relatedAgents
       }
     }
 
@@ -596,9 +578,9 @@ export async function getProjectBySlug(slug: string): Promise<Project | null> {
     created_at: fallbackProject.date,
     updated_at: fallbackProject.date,
     relatedProjects: [],
-    relatedBlogPosts: ['future-of-ai-in-healthcare', 'designing-ethical-ai'],
-    relatedMilestones: ['milestone-1'],
-    relatedAgents: ['template-generator', 'clinical-summarizer'],
+    relatedBlogPosts: [],
+    relatedMilestones: [],
+    relatedAgents: []
   } : null
 }
 
@@ -792,10 +774,10 @@ function convertLocalAgentToAgent(localAgent: any): Agent {
     trigger_type: localAgent.triggerType,
     created_at: localAgent.date,
     updated_at: localAgent.date,
-    relatedProjects: ['ai-medical-diagnostics', 'ethical-design-framework'],
-    relatedBlogPosts: ['future-of-ai-in-healthcare', 'designing-ethical-ai'],
-    relatedMilestones: ['milestone-1'],
-    relatedAgents: ['clinical-summarizer', 'literature-assistant'],
+    relatedProjects: [],
+    relatedBlogPosts: [],
+    relatedMilestones: [],
+    relatedAgents: []
   }
 }
 
@@ -817,8 +799,8 @@ export async function getAllAgentsFromNotion(): Promise<Agent[]> {
         },
         sorts: [
           {
-            property: 'created_at',
-            direction: 'descending',
+            property: 'name',
+            direction: 'ascending',
           },
         ],
       })
@@ -834,56 +816,37 @@ export async function getAllAgentsFromNotion(): Promise<Agent[]> {
         
         const properties = page.properties
         
+
+        
         // Get the page content
         const mdBlocks = await notionToMd.pageToMarkdown(page.id)
         const content = notionToMd.toMarkdownString(mdBlocks)
 
         // Fetch related content
-        console.log('  - Fetching related content for agent...')
-        console.log('  - Available properties:', Object.keys(properties))
-        
         let relatedProjects = await fetchRelatedContent(properties.projects)
         let relatedBlogPosts = await fetchRelatedContent(properties.blogPosts)
         let relatedMilestones = await fetchRelatedContent(properties.milestones)
-        let relatedAgents = await fetchRelatedContent(properties.agents)
 
-        console.log(`Agent "${getTextFromProperty(properties.name)}" related content:`, {
-          projects: relatedProjects,
-          blogPosts: relatedBlogPosts,
-          milestones: relatedMilestones,
-          agents: relatedAgents
-        })
-
-        // If all related content arrays are empty, use fallback data
-        const hasRelatedContent = relatedProjects.length > 0 || relatedBlogPosts.length > 0 || 
-                                 relatedMilestones.length > 0 || relatedAgents.length > 0
-        
-        if (!hasRelatedContent) {
-          console.log('  - No related content found in Notion, using fallback data')
-          relatedProjects = ['ai-medical-diagnostics', 'ethical-design-framework']
-          relatedBlogPosts = ['future-of-ai-in-healthcare', 'designing-ethical-ai']
-          relatedMilestones = ['milestone-1']
-          relatedAgents = ['clinical-summarizer', 'literature-assistant']
-        }
+        // Only show related content if it actually exists in Notion
+        // No fallback data - if no relations exist, show empty arrays
 
         return {
           id: page.id,
-          name: getTextFromProperty(properties.name),
+          name: getTextFromProperty(properties.name || properties.title),
           slug: getTextFromProperty(properties.slug),
           status: properties.status?.select?.name || 'idea',
-          category: getTextFromProperty(properties.category),
+          category: properties.category?.select?.name || getTextFromProperty(properties.category),
           description: getTextFromProperty(properties.description),
           content: content.parent, // Use the page content as content
           inputs: properties.inputs?.multi_select?.map((input: any) => input.name) || [],
           tags: getTagsFromProperty(properties.tags),
           example_uses: properties.exampleUses?.rich_text?.map((text: any) => text.plain_text) || [],
           trigger_type: properties.triggerType?.select?.name || 'manual',
-          created_at: properties.createdAt?.date?.start || new Date().toISOString(),
+          created_at: properties.createdAt?.date?.start || properties.date?.date?.start || new Date().toISOString(),
           updated_at: page.last_edited_time,
           relatedProjects,
           relatedBlogPosts,
-          relatedMilestones,
-          relatedAgents,
+          relatedMilestones
         }
       })
       
@@ -946,56 +909,38 @@ export async function getAgentBySlugFromNotion(slug: string): Promise<Agent | nu
 
       const properties = page.properties
 
+
+
       // Get the page content
       const mdBlocks = await notionToMd.pageToMarkdown(page.id)
       const content = notionToMd.toMarkdownString(mdBlocks)
 
       // Fetch related content
-      console.log('  - Fetching related content for agent...')
-      console.log('  - Available properties:', Object.keys(properties))
       
       let relatedProjects = await fetchRelatedContent(properties.projects)
       let relatedBlogPosts = await fetchRelatedContent(properties.blogPosts)
       let relatedMilestones = await fetchRelatedContent(properties.milestones)
-      let relatedAgents = await fetchRelatedContent(properties.agents)
 
-      console.log(`Agent "${getTextFromProperty(properties.name)}" related content:`, {
-        projects: relatedProjects,
-        blogPosts: relatedBlogPosts,
-        milestones: relatedMilestones,
-        agents: relatedAgents
-      })
-
-      // If all related content arrays are empty, use fallback data
-      const hasRelatedContent = relatedProjects.length > 0 || relatedBlogPosts.length > 0 || 
-                               relatedMilestones.length > 0 || relatedAgents.length > 0
-      
-      if (!hasRelatedContent) {
-        console.log('  - No related content found in Notion, using fallback data')
-        relatedProjects = ['ai-medical-diagnostics', 'ethical-design-framework']
-        relatedBlogPosts = ['future-of-ai-in-healthcare', 'designing-ethical-ai']
-        relatedMilestones = ['milestone-1']
-        relatedAgents = ['clinical-summarizer', 'literature-assistant']
-      }
+      // Only show related content if it actually exists in Notion
+      // No fallback data - if no relations exist, show empty arrays
 
       return {
         id: page.id,
-        name: getTextFromProperty(properties.name),
+        name: getTextFromProperty(properties.name || properties.title),
         slug: getTextFromProperty(properties.slug),
         status: properties.status?.select?.name || 'idea',
-        category: getTextFromProperty(properties.category),
+        category: properties.category?.select?.name || getTextFromProperty(properties.category),
         description: getTextFromProperty(properties.description),
         content: content.parent, // Use the page content as content
         inputs: properties.inputs?.multi_select?.map((input: any) => input.name) || [],
         tags: getTagsFromProperty(properties.tags),
         example_uses: properties.exampleUses?.rich_text?.map((text: any) => text.plain_text) || [],
         trigger_type: properties.triggerType?.select?.name || 'manual',
-        created_at: properties.createdAt?.date?.start || new Date().toISOString(),
+        created_at: properties.createdAt?.date?.start || properties.date?.date?.start || new Date().toISOString(),
         updated_at: page.last_edited_time,
         relatedProjects,
         relatedBlogPosts,
         relatedMilestones,
-        relatedAgents,
       }
     } else {
       console.log('Notion integration not configured - missing NOTION_API_KEY or NOTION_AGENTS_DB_ID')
