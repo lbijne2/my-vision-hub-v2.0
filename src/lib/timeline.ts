@@ -44,7 +44,7 @@ const processAgents = (): TimelineEntry[] => {
     date: agent.date || '',
     description: agent.description,
     icon: "🧠",
-    color: "bg-pastel-orange"
+    color: "bg-pastel-purple"
   }))
 }
 
@@ -57,7 +57,7 @@ const processPosts = (): TimelineEntry[] => {
     date: post.date || '',
     description: post.excerpt,
     icon: "✍️",
-    color: "bg-pastel-pink"
+    color: "bg-pastel-rose"
   }))
 }
 
@@ -107,17 +107,26 @@ const processLinkedItems = (linkedItems?: string[]): LinkedItem[] => {
 const processMilestones = async (): Promise<TimelineEntry[]> => {
   try {
     const milestones = await getMilestonesFromNotion()
-    return milestones.map(milestone => ({
-      id: `milestone-${milestone.id}`,
-      title: milestone.title,
-      slug: undefined, // Milestones don't have slugs
-      type: 'milestone' as const,
-      date: milestone.date || '',
-      description: milestone.description,
-      icon: milestone.icon,
-      color: milestone.color,
-      linked_items: processLinkedItems(milestone.linked_items)
-    }))
+    return milestones.map(milestone => {
+      // Process linked items first
+      const linkedItems = processLinkedItems(milestone.linked_items)
+      
+      // Use the first linked item as the slug for clickable title
+      const firstLinkedItem = linkedItems[0]
+      const slug = firstLinkedItem && firstLinkedItem.href ? firstLinkedItem.href.replace(/^\//, '') : undefined
+      
+      return {
+        id: `milestone-${milestone.id}`,
+        title: milestone.title,
+        slug: slug, // Use first linked item as slug for clickable title
+        type: 'milestone' as const,
+        date: milestone.date || '',
+        description: milestone.description,
+        icon: milestone.icon,
+        color: milestone.color,
+        linked_items: linkedItems
+      }
+    })
   } catch (error) {
     console.error('Error processing milestones:', error)
     return []

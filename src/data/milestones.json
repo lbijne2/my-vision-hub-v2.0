@@ -6,7 +6,7 @@
     "date": "2024-01-30",
     "description": "Official launch of the redesigned Vision Hub platform with enhanced features and improved user experience.",
     "icon": "🚀",
-    "color": "bg-pastel-purple",
+    "color": "bg-pastel-blue",
     "linked_items": ["project:ethical-design-framework", "agent:template-generator"]
   },
   {
@@ -26,7 +26,7 @@
     "date": "2024-01-12",
     "description": "Completed the initial development of our comprehensive ethical AI design framework, establishing guidelines for responsible AI development.",
     "icon": "⚖️",
-    "color": "bg-pastel-sage",
+    "color": "bg-pastel-blue",
     "linked_items": ["project:ethical-design-framework", "post:designing-ethical-ai"]
   },
   {
@@ -36,7 +36,7 @@
     "date": "2024-01-08", 
     "description": "Launched our research initiative focused on AI applications in healthcare, beginning with medical diagnostics and patient care.",
     "icon": "🏥",
-    "color": "bg-pastel-mint",
+    "color": "bg-pastel-blue",
     "linked_items": ["project:ai-medical-diagnostics", "post:future-of-ai-in-healthcare", "agent:clinical-summarizer"]
   }
 ] 

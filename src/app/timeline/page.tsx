@@ -2,16 +2,33 @@
 
 import { useState, useMemo, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { Calendar, Loader2 } from "lucide-react"
+import { Calendar, Loader2, FileText, Brain, PenTool, Flag } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card } from "@/components/ui/card"
+import LinkedItemIcons from "@/components/LinkedItemIcons"
 import { 
   formatDate, 
   getTypeLabel,
   type TimelineEntry 
 } from "@/lib/timeline"
+
+// Helper function to get minimalistic icon for each type
+const getTimelineIcon = (type: string) => {
+  switch (type) {
+    case 'project':
+      return <FileText className="w-6 h-6 text-vision-charcoal" />
+    case 'agent':
+      return <Brain className="w-6 h-6 text-vision-charcoal" />
+    case 'post':
+      return <PenTool className="w-6 h-6 text-vision-charcoal" />
+    case 'milestone':
+      return <Calendar className="w-6 h-6 text-vision-charcoal" />
+    default:
+      return <FileText className="w-6 h-6 text-vision-charcoal" />
+  }
+}
 
 // Filter options
 const filterOptions = [
@@ -87,7 +104,7 @@ export default function TimelinePage() {
   }, [allEntries, activeFilter])
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pastel-cream to-pastel-sage">
+    <div className="min-h-screen pastel-cream">
       <div className="max-w-4xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="text-center mb-12">
@@ -97,17 +114,6 @@ export default function TimelinePage() {
           <p className="text-lg text-vision-charcoal/70 max-w-2xl mx-auto">
             Explore the journey of ideas, projects, and milestones that shape the Vision Hub ecosystem.
           </p>
-          {!isLoading && allEntries.length > 0 && (
-            <div className="mt-4 text-sm text-vision-charcoal/50">
-              {allEntries.some(entry => 
-                entry.id.startsWith('milestone-') && entry.id.length > 20
-              ) ? (
-                <span>📊 Connected to Notion</span>
-              ) : (
-                <span>📝 Using local data</span>
-              )}
-            </div>
-          )}
         </div>
 
         {/* Filter Controls */}
@@ -194,7 +200,7 @@ export default function TimelinePage() {
                       <Card className="p-6 bg-white/90 backdrop-blur-sm border-vision-border shadow-md hover:shadow-lg transition-shadow duration-200">
                         <div className="flex items-start justify-between mb-4">
                           <div className="flex items-center gap-3">
-                            <span className="text-2xl">{entry.icon}</span>
+                            {getTimelineIcon(entry.type)}
                             <div>
                               <Badge 
                                 variant="secondary" 
@@ -211,38 +217,29 @@ export default function TimelinePage() {
                         </div>
 
                         <div className="space-y-3">
-                          <h3 className="text-xl font-semibold text-vision-charcoal">
-                            {entry.slug ? (
-                              <Link 
-                                href={`/${entry.type === 'post' ? 'blog' : entry.type}s/${entry.slug}`}
-                                className="hover:text-vision-ochre transition-colors duration-200"
-                              >
-                                {entry.title}
-                              </Link>
-                            ) : (
-                              entry.title
+                          <div className="flex items-center">
+                            <h3 className="text-xl font-semibold text-vision-charcoal">
+                              {entry.slug ? (
+                                <Link 
+                                  href={entry.type === 'milestone' ? `/${entry.slug}` : `/${entry.type === 'post' ? 'blog' : entry.type}s/${entry.slug}`}
+                                  className="hover:text-vision-ochre transition-colors duration-200"
+                                >
+                                  {entry.title}
+                                </Link>
+                              ) : (
+                                entry.title
+                              )}
+                            </h3>
+                            {/* Linked Item Icons */}
+                            {entry.linked_items && entry.linked_items.length > 0 && (
+                              <LinkedItemIcons linkedItems={entry.linked_items} />
                             )}
-                          </h3>
+                          </div>
                           
                           {entry.description && (
                             <p className="text-vision-charcoal/70 leading-relaxed">
                               {entry.description}
                             </p>
-                          )}
-                          
-                          {/* Linked Items */}
-                          {entry.linked_items && entry.linked_items.length > 0 && (
-                            <div className="flex flex-wrap gap-2 mt-3">
-                              {entry.linked_items.map(link => (
-                                <Link
-                                  key={link.href}
-                                  href={link.href}
-                                  className="text-sm bg-pastel-sky text-vision-charcoal px-2 py-1 rounded-lg hover:bg-pastel-cream transition-colors duration-200"
-                                >
-                                  🔗 {link.label}
-                                </Link>
-                              ))}
-                            </div>
                           )}
                         </div>
                       </Card>

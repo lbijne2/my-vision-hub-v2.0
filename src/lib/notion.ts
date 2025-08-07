@@ -711,6 +711,15 @@ export async function getMilestonesFromNotion(): Promise<Milestone[]> {
 
       if (milestones.length > 0) {
         console.log(`Loaded ${milestones.length} milestones from Notion`)
+        
+        // Check if any milestones have linked items
+        const hasLinkedItems = milestones.some(milestone => milestone.linked_items && milestone.linked_items.length > 0)
+        
+        if (!hasLinkedItems) {
+          console.log('Notion milestones have no linked items, using local data with linked items')
+          return milestonesData
+        }
+        
         return milestones
       } else {
         console.log('No published milestones found in Notion database')

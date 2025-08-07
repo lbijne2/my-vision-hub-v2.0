@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { FileText, Calendar, Brain, ExternalLink } from 'lucide-react'
+import { FileText, Calendar, Brain, ExternalLink, PenTool } from 'lucide-react'
 
 interface RelatedContentProps {
   relatedProjects?: string[]
@@ -61,7 +61,7 @@ const RelatedContent = ({
       <h2 className="text-lg font-semibold text-vision-charcoal mb-4">Related Content</h2>
       
       {renderRelatedSection(relatedProjects || [], 'Projects', <FileText className="w-4 h-4" />, '/projects')}
-      {renderRelatedSection(relatedBlogPosts || [], 'Blog Posts', <FileText className="w-4 h-4" />, '/blog')}
+      {renderRelatedSection(relatedBlogPosts || [], 'Blog Posts', <PenTool className="w-4 h-4" />, '/blog')}
       {renderRelatedSection(relatedMilestones || [], 'Milestones', <Calendar className="w-4 h-4" />, '/timeline')}
       {renderRelatedSection(relatedAgents || [], 'Agents', <Brain className="w-4 h-4" />, '/agents')}
     </div>
