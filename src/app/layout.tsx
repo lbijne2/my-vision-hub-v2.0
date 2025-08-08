@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import "./globals.css"
 import { Navigation } from "@/components/Navigation"
+import { BackgroundPreloader } from "@/components/BackgroundPreloader"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -21,10 +22,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.className} vision-bg min-h-screen`}>
-        <Navigation />
-        <main className="flex-1">
-          {children}
-        </main>
+        <BackgroundPreloader enablePreloading={true} maxConcurrent={3}>
+          <Navigation />
+          <main className="flex-1">
+            {children}
+          </main>
+        </BackgroundPreloader>
       </body>
     </html>
   )

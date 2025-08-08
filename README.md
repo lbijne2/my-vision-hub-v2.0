@@ -2,7 +2,7 @@
 
 A personal digital platform showcasing projects, thoughts, and resources at the intersection of technology, medicine, design, and human potential.
 
-## 🚀 Current Version: v0.4e
+## 🚀 Current Version: v0.5a
 
 **Latest Features:**
 - ✅ **v0.1**: Basic architecture with homepage and navigation
@@ -189,10 +189,21 @@ src/
 - **Responsive Design**: Smooth animations and Vision Hub design language
 - **Performance Optimized**: Efficient filtering with useMemo hooks
 
+**v0.5a - GitHub File Preview Integration** 🆕
+- **Single File Preview**: Preview specific files from GitHub repositories with syntax highlighting
+- **Repository Browser**: Interactive file browser to explore and preview any file in the repository
+- **Syntax Highlighting**: Support for 40+ programming languages with proper highlighting
+- **File Search**: Search functionality to quickly find files in repositories
+- **Breadcrumb Navigation**: Easy navigation through directory structure
+- **Automatic Language Detection**: File type detection based on extension
+- **Error Handling**: Graceful fallback for private repos, missing files, or API errors
+- **Loading States**: Skeleton loading UI for better user experience
+- **Notion Integration**: New `GitHub Preview Path` field in Projects database
+
 ### 🚧 Upcoming Features
 
 **v0.5 - Enhanced Project Features**
-- Advanced GitHub integration with code snippets
+- ✅ GitHub file preview integration with syntax highlighting
 - Interactive project timelines
 - Related projects suggestions
 - Advanced sorting options

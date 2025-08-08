@@ -511,6 +511,7 @@ export async function getAllProjects(): Promise<Project[]> {
           visible: properties.published?.checkbox !== false, // Maps to Notion 'published' checkbox
           github_url: properties.githubUrl?.url || '',
           github_repo: getTextFromProperty(properties.githubRepo) || '',
+          github_preview_path: getTextFromProperty(properties.githubPreviewPath) || '',
           notion_url: page.url,
           created_at: properties.date?.date?.start || new Date().toISOString(),
           updated_at: page.last_edited_time,
@@ -755,6 +756,7 @@ export async function getProjectBySlug(slug: string): Promise<Project | null> {
         status: properties.status?.select?.name || 'idea',
         github_url: properties.githubUrl?.url || '',
         github_repo: getTextFromProperty(properties.githubRepo) || '',
+        github_preview_path: getTextFromProperty(properties.githubPreviewPath) || '',
         notion_url: page.url,
         created_at: properties.date?.date?.start || new Date().toISOString(),
         updated_at: page.last_edited_time,

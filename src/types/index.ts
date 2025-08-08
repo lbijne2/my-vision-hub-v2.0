@@ -34,6 +34,7 @@ export interface Project {
   visible?: boolean // Maps to Notion 'published' checkbox property
   github_url?: string
   github_repo?: string
+  github_preview_path?: string // New field for GitHub file preview
   notion_url?: string
   created_at: string
   updated_at: string

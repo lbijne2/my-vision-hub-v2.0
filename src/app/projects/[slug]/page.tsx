@@ -12,6 +12,8 @@ import { WidescreenToggle } from "@/components/WidescreenToggle"
 import { cn, formatDate, formatDateHeader, formatDateFromISO } from "@/lib/utils"
 import { getProjectBySlug, getAllProjects, getStatusColor } from "@/lib/projects"
 import { AsyncGitHubRepo, AsyncRelatedContent } from "@/components/AsyncComponents"
+import { GitHubFilePreview } from "@/components/GitHubFilePreview"
+import { GitHubBrowser } from "@/components/GitHubBrowser"
 import type { Metadata } from "next"
 
 interface ProjectPageProps {
@@ -27,15 +29,6 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
   if (!project) {
     notFound()
   }
-
-  // Debug logging
-  console.log('Project data:', {
-    title: project.title,
-    relatedProjects: project.relatedProjects,
-    relatedBlogPosts: project.relatedBlogPosts,
-    relatedMilestones: project.relatedMilestones,
-    relatedAgents: project.relatedAgents
-  })
 
   return (
     <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8">
@@ -235,6 +228,15 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
                 )}
               </CardContent>
             </Card>
+
+            {/* GitHub Repository Browser Section */}
+            {project.github_repo && !project.github_preview_path && (
+              <div className="mt-8">
+                <GitHubBrowser 
+                  githubField={project.github_repo} 
+                />
+              </div>
+            )}
           </div>
 
           {/* Sidebar */}
@@ -242,6 +244,14 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
             {/* GitHub Repository Section */}
             {project.github_repo && (
               <AsyncGitHubRepo repoPath={project.github_repo} />
+            )}
+
+            {/* GitHub File Preview Section */}
+            {project.github_repo && project.github_preview_path && (
+              <GitHubFilePreview 
+                repo={project.github_repo} 
+                path={project.github_preview_path} 
+              />
             )}
 
             {/* Project Status & Info */}

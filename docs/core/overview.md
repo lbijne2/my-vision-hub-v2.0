@@ -102,16 +102,20 @@ My Vision Hub is a personal and evolving digital platform that brings together t
 
 **7. Versioning Plan**
 
-- **v0.0:** Basic architecture with previews and basic integrations.
+- **v0.0:** Basic architecture with previews and basic integrations.
   - **v0.1:** Static homepage with top navigation and simple layout.
   - **v0.2:** Add one static project page and dummy blog feed with routing.
   - **v0.3:** Implement Notion integration for blog drafts and project notes.
-  - **v0.4:** Add GitHub project previews and basic Supabase schema setup.
-  - **v0.5:** Build the Resource Library with search and tag features.
-  - **v0.6:** Introduce the first Future Scenario entry with visuals and narrative.
-  - **v0.7:** Scaffold Agentic Workflows Module with metadata structure and dummy triggers.
-  - **v0.8:** Add OpenAI-powered tool integration (e.g., summarizer, ideator).
-  - **v0.9:** Build out the Personal Dashboard UI with private-only access.
+  - **v0.4a:** Notion-powered content management with enhanced content detail pages.
+  - **v0.4b:** Full Supabase database integration with type-safe operations.
+  - **v0.4c:** Agentic Workflows Module with AI agent showcase and management.
+  - **v0.4d:** GitHub integration with repository linking and code previews.
+  - **v0.4e:** Interactive project filtering and search system.
+  - **v0.5:** Enhanced project features with advanced GitHub integration and timelines.
+  - **v0.6:** Resource Library with search, filtering, and download capabilities.
+  - **v0.7:** Enhanced agents with interactive demos and OpenAI API integration.
+  - **v0.8:** Personal Dashboard with analytics and private workspace features.
+  - **v0.9:** Advanced AI integrations and collaborative zone features.
 - **v1.0:** Complete role-based permission system and finalize Collaborative Zone with Notion/GitHub live syncing.
 
 ---

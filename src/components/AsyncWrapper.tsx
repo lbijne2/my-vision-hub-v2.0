@@ -1,25 +1,31 @@
 'use client'
 
 import { useState, useEffect, ReactNode } from 'react'
+import { getPreloadedData } from './BackgroundPreloader'
 
 interface AsyncWrapperProps {
   children: ReactNode
   skeleton: ReactNode
   delay?: number
   condition?: boolean
+  preloadKey?: string // Key to check for preloaded data
+  onPreloadedData?: (data: any) => void // Callback when preloaded data is found
 }
 
 /**
  * A wrapper component that shows a skeleton while content is loading
- * Useful for creating smooth loading transitions with minimal delay
+ * Enhanced to work with background preloading system
  */
 export default function AsyncWrapper({ 
   children, 
   skeleton, 
   delay = 200,
-  condition = true 
+  condition = true,
+  preloadKey,
+  onPreloadedData
 }: AsyncWrapperProps) {
   const [showSkeleton, setShowSkeleton] = useState(true)
+  const [hasPreloadedData, setHasPreloadedData] = useState(false)
 
   useEffect(() => {
     if (!condition) {
@@ -27,12 +33,27 @@ export default function AsyncWrapper({
       return
     }
 
+    // Check for preloaded data first
+    if (preloadKey) {
+      const preloadedData = getPreloadedData(preloadKey)
+      if (preloadedData) {
+        setHasPreloadedData(true)
+        if (onPreloadedData) {
+          onPreloadedData(preloadedData.data)
+        }
+        // Show content immediately if we have preloaded data
+        setShowSkeleton(false)
+        return
+      }
+    }
+
+    // Fall back to normal delay behavior
     const timer = setTimeout(() => {
       setShowSkeleton(false)
     }, delay)
 
     return () => clearTimeout(timer)
-  }, [delay, condition])
+  }, [delay, condition, preloadKey, onPreloadedData])
 
   if (showSkeleton) {
     return <>{skeleton}</>

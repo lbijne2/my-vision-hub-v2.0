@@ -322,3 +322,38 @@ export function AgentCardSkeleton() {
     </Card>
   )
 }
+
+// GitHub File Preview Skeleton
+export function GitHubFilePreviewSkeleton() {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-lg text-vision-charcoal flex items-center gap-2">
+          <FileText className="h-5 w-5" />
+          <Skeleton className="h-5 w-32" />
+        </CardTitle>
+        <div className="text-sm text-muted-foreground">
+          <Skeleton className="h-4 w-48" />
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="mb-4 flex items-center justify-between">
+          <div className="flex items-center gap-2 text-sm text-vision-charcoal/60">
+            <span className="font-medium">Language:</span>
+            <Skeleton className="h-4 w-16" />
+          </div>
+          <Skeleton className="h-8 w-32" />
+        </div>
+        <div className="space-y-2">
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-3/4" />
+          <Skeleton className="h-4 w-1/2" />
+          <Skeleton className="h-4 w-5/6" />
+          <Skeleton className="h-4 w-2/3" />
+          <Skeleton className="h-4 w-4/5" />
+          <Skeleton className="h-4 w-1/3" />
+        </div>
+      </CardContent>
+    </Card>
+  )
+}

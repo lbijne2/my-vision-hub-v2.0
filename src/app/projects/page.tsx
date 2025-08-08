@@ -8,6 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { ProjectCard } from "@/components/ProjectCard"
 import { ProjectFilters } from "@/components/ProjectFilters"
 import { ProjectCardSkeleton } from "@/components/ui/loading-skeletons"
+import { usePreloadedData } from "@/components/BackgroundPreloader"
 import type { Project } from '@/types'
 
 export default function ProjectsPage() {
@@ -15,7 +16,18 @@ export default function ProjectsPage() {
   const [filteredProjects, setFilteredProjects] = useState<Project[]>([])
   const [loading, setLoading] = useState(true)
 
+  // Check for preloaded data first
+  const preloadedData = usePreloadedData('projects')
+
   useEffect(() => {
+    // If we have preloaded data, use it immediately
+    if (preloadedData && preloadedData.projects) {
+      setProjects(preloadedData.projects)
+      setFilteredProjects(preloadedData.projects)
+      setLoading(false)
+      return
+    }
+
     const fetchProjects = async () => {
       try {
         // First try to fetch from API (if Supabase is configured)
@@ -40,7 +52,7 @@ export default function ProjectsPage() {
     }
 
     fetchProjects()
-  }, [])
+  }, [preloadedData])
 
   const handleFiltersChange = (newFilteredProjects: Project[]) => {
     setFilteredProjects(newFilteredProjects)
