@@ -16,8 +16,10 @@ export function ProjectFilters({ projects, onFiltersChange, filteredCount }: Pro
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedTags, setSelectedTags] = useState<string[]>([])
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>([])
+  const [selectedStructures, setSelectedStructures] = useState<string[]>([])
   const [tagLogic, setTagLogic] = useState<'AND' | 'OR'>('AND')
   const [statusLogic, setStatusLogic] = useState<'AND' | 'OR'>('OR')
+  const [structureLogic, setStructureLogic] = useState<'AND' | 'OR'>('OR')
   const [showFilters, setShowFilters] = useState(false)
 
   // Extract unique tags from all projects
@@ -38,6 +40,28 @@ export function ProjectFilters({ projects, onFiltersChange, filteredCount }: Pro
     return Array.from(statuses).sort()
   }, [projects])
 
+  // Determine project structure types
+  const allStructures = useMemo(() => {
+    const structures = new Set<string>()
+    projects.forEach(project => {
+      const hasChildren = project.childProjects && project.childProjects.length > 0
+      const hasParent = project.parentProject
+      
+      if (hasChildren) {
+        structures.add('parent')
+      } else if (hasParent) {
+        structures.add('child')
+      } else {
+        structures.add('standalone')
+      }
+    })
+    return Array.from(structures).sort((a, b) => {
+      // Custom sort order: parent, child, standalone
+      const order = { 'parent': 0, 'child': 1, 'standalone': 2 }
+      return order[a as keyof typeof order] - order[b as keyof typeof order]
+    })
+  }, [projects])
+
   // Map status to display name
   const getStatusDisplayName = (status: string) => {
     switch (status) {
@@ -47,8 +71,46 @@ export function ProjectFilters({ projects, onFiltersChange, filteredCount }: Pro
         return 'Prototype'
       case 'archived':
         return 'Archived'
+      case 'in progress':
+        return 'In Progress'
+      case 'planning':
+        return 'Planning'
+      case 'research':
+        return 'Research'
+      case 'completed':
+        return 'Completed'
+      case 'idea':
+        return 'Idea'
       default:
         return status
+    }
+  }
+
+  // Map structure to display name
+  const getStructureDisplayName = (structure: string) => {
+    switch (structure) {
+      case 'parent':
+        return 'Parent'
+      case 'child':
+        return 'Child'
+      case 'standalone':
+        return 'Standalone'
+      default:
+        return structure
+    }
+  }
+
+  // Get project structure type
+  const getProjectStructure = (project: Project): string => {
+    const hasChildren = project.childProjects && project.childProjects.length > 0
+    const hasParent = project.parentProject
+    
+    if (hasChildren) {
+      return 'parent'
+    } else if (hasParent) {
+      return 'child'
+    } else {
+      return 'standalone'
     }
   }
 
@@ -77,9 +139,17 @@ export function ProjectFilters({ projects, onFiltersChange, filteredCount }: Pro
           : selectedStatuses.every(status => project.status === status)
         )
 
-      return matchesSearch && matchesTags && matchesStatus
+      // Structure filter - projects must have ANY of the selected structures (OR) or ALL selected structures (AND)
+      const projectStructure = getProjectStructure(project)
+      const matchesStructure = selectedStructures.length === 0 || 
+        (structureLogic === 'OR'
+          ? selectedStructures.includes(projectStructure)
+          : selectedStructures.every(structure => projectStructure === structure)
+        )
+
+      return matchesSearch && matchesTags && matchesStatus && matchesStructure
     })
-  }, [projects, searchQuery, selectedTags, selectedStatuses, tagLogic, statusLogic])
+  }, [projects, searchQuery, selectedTags, selectedStatuses, selectedStructures, tagLogic, statusLogic, structureLogic])
 
   // Update parent component when filters change
   useEffect(() => {
@@ -102,6 +172,14 @@ export function ProjectFilters({ projects, onFiltersChange, filteredCount }: Pro
     )
   }
 
+  const handleStructureToggle = (structure: string) => {
+    setSelectedStructures(prev => 
+      prev.includes(structure) 
+        ? prev.filter(s => s !== structure)
+        : [...prev, structure]
+    )
+  }
+
   const toggleTagLogic = () => {
     setTagLogic(prev => prev === 'AND' ? 'OR' : 'AND')
   }
@@ -110,15 +188,21 @@ export function ProjectFilters({ projects, onFiltersChange, filteredCount }: Pro
     setStatusLogic(prev => prev === 'AND' ? 'OR' : 'AND')
   }
 
+  const toggleStructureLogic = () => {
+    setStructureLogic(prev => prev === 'AND' ? 'OR' : 'AND')
+  }
+
   const clearAllFilters = () => {
     setSearchQuery('')
     setSelectedTags([])
     setSelectedStatuses([])
+    setSelectedStructures([])
     setTagLogic('AND')
     setStatusLogic('OR')
+    setStructureLogic('OR')
   }
 
-  const hasActiveFilters = searchQuery || selectedTags.length > 0 || selectedStatuses.length > 0
+  const hasActiveFilters = searchQuery || selectedTags.length > 0 || selectedStatuses.length > 0 || selectedStructures.length > 0
 
   return (
     <div className="space-y-6 mb-8">
@@ -158,7 +242,7 @@ export function ProjectFilters({ projects, onFiltersChange, filteredCount }: Pro
           {showFilters ? 'Hide Filters' : 'Show Filters'}
           {hasActiveFilters && !showFilters && (
             <Badge variant="secondary" className="ml-1 px-1.5 py-0.5 text-xs bg-white text-vision-charcoal">
-              {selectedTags.length + selectedStatuses.length}
+              {selectedTags.length + selectedStatuses.length + selectedStructures.length}
             </Badge>
           )}
           {showFilters ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
@@ -168,39 +252,76 @@ export function ProjectFilters({ projects, onFiltersChange, filteredCount }: Pro
       {/* Filters Section - Only show when toggled */}
       {showFilters && (
         <div className="space-y-6">
-          {/* Status Filters */}
-          {allStatuses.length > 0 && (
-            <div className="space-y-3">
-              <div className="flex items-center gap-2 text-sm font-medium text-vision-charcoal">
-                <Filter className="w-4 h-4" />
-                Status
-                <Badge
-                  variant="outline"
-                  className="cursor-pointer text-xs bg-white text-vision-charcoal border-pastel-sky/30 hover:bg-pastel-sky/10 hover:border-pastel-sky/50 transition-all duration-200 hover:scale-105"
-                  onClick={toggleStatusLogic}
-                >
-                  {statusLogic}
-                </Badge>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {allStatuses.map(status => (
-                  <Button
-                    key={status}
+          {/* Status and Project Structure Filters - Content-Based Width */}
+          <div className="flex flex-wrap gap-8">
+            {/* Status Section */}
+            {allStatuses.length > 0 && (
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 text-sm font-medium text-vision-charcoal">
+                  <Filter className="w-4 h-4" />
+                  Status
+                  <Badge
                     variant="outline"
-                    size="sm"
-                    onClick={() => handleStatusToggle(status)}
-                    className={`transition-all duration-200 hover:scale-105 rounded-lg ${
-                      selectedStatuses.includes(status) 
-                        ? 'bg-pastel-sky text-vision-charcoal border-pastel-sky shadow-sm hover:bg-pastel-sky/80' 
-                        : 'bg-white text-vision-charcoal border-pastel-sky/30 hover:bg-pastel-sky/10 hover:border-pastel-sky/50'
-                    }`}
+                    className="cursor-pointer text-xs bg-white text-vision-charcoal border-pastel-sky/30 hover:bg-pastel-sky/10 hover:border-pastel-sky/50 transition-all duration-200 hover:scale-105"
+                    onClick={toggleStatusLogic}
                   >
-                    {getStatusDisplayName(status)}
-                  </Button>
-                ))}
+                    {statusLogic}
+                  </Badge>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {allStatuses.map(status => (
+                    <Button
+                      key={status}
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleStatusToggle(status)}
+                      className={`transition-all duration-200 hover:scale-105 rounded-lg ${
+                        selectedStatuses.includes(status) 
+                          ? 'bg-pastel-sky text-vision-charcoal border-pastel-sky shadow-sm hover:bg-pastel-sky/80' 
+                          : 'bg-white text-vision-charcoal border-pastel-sky/30 hover:bg-pastel-sky/10 hover:border-pastel-sky/50'
+                      }`}
+                    >
+                      {getStatusDisplayName(status)}
+                    </Button>
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
+            )}
+            
+            {/* Project Structure Section */}
+            {allStructures.length > 0 && (
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 text-sm font-medium text-vision-charcoal">
+                  <Filter className="w-4 h-4" />
+                  Project Structure
+                  <Badge
+                    variant="outline"
+                    className="cursor-pointer text-xs bg-white text-vision-charcoal border-pastel-sky/30 hover:bg-pastel-sky/10 hover:border-pastel-sky/50 transition-all duration-200 hover:scale-105"
+                    onClick={toggleStructureLogic}
+                  >
+                    {structureLogic}
+                  </Badge>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {allStructures.map(structure => (
+                    <Button
+                      key={structure}
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleStructureToggle(structure)}
+                      className={`transition-all duration-200 hover:scale-105 rounded-lg ${
+                        selectedStructures.includes(structure) 
+                          ? 'bg-pastel-sky text-vision-charcoal border-pastel-sky shadow-sm hover:bg-pastel-sky/80' 
+                          : 'bg-white text-vision-charcoal border-pastel-sky/30 hover:bg-pastel-sky/10 hover:border-pastel-sky/50'
+                      }`}
+                    >
+                      {getStructureDisplayName(structure)}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
 
           {/* Tag Filters */}
           {allTags.length > 0 && (

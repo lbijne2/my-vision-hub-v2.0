@@ -116,7 +116,7 @@ const processMilestones = async (): Promise<TimelineEntry[]> => {
       const slug = firstLinkedItem && firstLinkedItem.href ? firstLinkedItem.href.replace(/^\//, '') : undefined
       
       return {
-        id: `milestone-${milestone.id}`,
+        id: milestone.id, // Use raw Notion ID or fallback ID as-is
         title: milestone.title,
         slug: slug, // Use first linked item as slug for clickable title
         type: 'milestone' as const,

@@ -8,21 +8,26 @@ This document explains how to set up the Notion integration for milestones in th
 
 Create a new database in Notion with the following properties:
 
-| Property Name | Type | Description |
-|---------------|------|-------------|
-| `Title` | Title | The milestone title |
-| `Date` | Date | When the milestone occurred |
-| `Type` | Select | milestone, launch, research, development, integration, release, update |
-| `Status` | Select | active, completed, planned, etc. |
-| `Description` | Rich Text | Detailed description of the milestone |
-| `Published` | Checkbox | Whether to show on timeline (true = visible) |
-| `Linked Items` | Multi-select | Format: `project:slug`, `agent:slug`, `post:slug` |
+| Property Name | Type | Required | Description |
+|---------------|------|----------|-------------|
+| `Name` | Title | ✅ | Milestone title |
+| `Slug` | Text | ✅ | Optional (for direct linking if needed) |
+| `Date` | Date | ✅ | Date of milestone |
+| `Description` | Rich text | ✅ | Short explanation |
+| `Status` | Select | ✅ | `planned`, `active`, `completed` |
+| `Type` | Select | ✅ | `fellowship`, `launch`, `research`, `custom` |
+| `Icon` | Text (emoji) | ✅ | e.g. `🚀`, `🔬`, `📚` |
+| `Color` | Text (Tailwind class) | ✅ | e.g. `bg-pastel-mint`, `bg-pastel-sky` |
+| `Published` | Checkbox | ✅ | Whether this should appear on timeline |
+| `Projects` | Relation → Projects | optional | Related project entries |
+| `BlogPosts` | Relation → Blog Posts | optional | Related blog entries |
+| `Agents` | Relation → Agents | optional | Related agents |
 
-### 2. Example Linked Items
+### 2. Example Database Entry
 
-- `project:ai-medical-diagnostics`
-- `agent:template-generator`
-- `post:future-of-ai-in-healthcare`
+| Name | Slug | Date | Description | Status | Type | Icon | Color | Published |
+|------|------|------|-------------|--------|------|------|-------|-----------|
+| "Vision Hub v2.0 Launch" | "v2-launch" | 2024-01-30 | "Official launch of the redesigned platform" | completed | launch | 🚀 | bg-pastel-blue | ✅ |
 
 ## 🔧 Environment Variables
 
@@ -38,19 +43,16 @@ NOTION_PROJECT_DB_ID=your_projects_database_id
 NOTION_MILESTONES_DB_ID=your_milestones_database_id
 ```
 
-## 🎨 Milestone Types & Icons
+## 🎨 Milestone Types & Default Icons
 
-The system automatically assigns icons and colors based on the Type field:
+The system automatically assigns icons and colors based on the Type field if not specified:
 
-| Type | Icon | Color |
-|------|------|-------|
-| milestone | 📌 | bg-pastel-purple |
+| Type | Default Icon | Default Color |
+|------|--------------|---------------|
+| fellowship | 🎓 | bg-pastel-sage |
 | launch | 🚀 | bg-pastel-blue |
-| research | 🔬 | bg-pastel-sage |
-| development | ⚙️ | bg-pastel-orange |
-| integration | 🔗 | bg-pastel-pink |
-| release | 🎉 | bg-pastel-green |
-| update | 🔄 | bg-pastel-lavender |
+| research | 🔬 | bg-pastel-lavender |
+| custom | 📌 | bg-pastel-purple |
 
 ## 🔄 Fallback Behavior
 
@@ -63,7 +65,7 @@ If Notion is not configured or fails to load:
 
 1. Add milestones to your Notion database
 2. Set `Published` to true for timeline visibility
-3. Add linked items in the format `type:slug`
+3. Add related items using the relation properties (Projects, BlogPosts, Agents)
 4. The timeline will automatically load and display them
 
 ## 🐛 Troubleshooting

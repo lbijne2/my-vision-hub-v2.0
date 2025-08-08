@@ -41,6 +41,18 @@ export interface Project {
   relatedBlogPosts?: string[]
   relatedMilestones?: string[]
   relatedAgents?: string[]
+  parentProject?: {
+    title: string
+    slug: string
+  }
+  childProjects?: Array<{
+    title: string
+    slug: string
+  }>
+  siblingProjects?: Array<{
+    title: string
+    slug: string
+  }>
 }
 
 export interface BlogPost {

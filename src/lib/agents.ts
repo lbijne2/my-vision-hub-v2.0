@@ -14,6 +14,7 @@ function convertLocalAgentToAgent(localAgent: any): Agent {
     status: localAgent.status as 'active' | 'prototype' | 'idea',
     category: localAgent.category,
     description: localAgent.description,
+    content: localAgent.content, // Add content field
     inputs: localAgent.inputs,
     tags: localAgent.tags,
     example_uses: localAgent.exampleUse ? [localAgent.exampleUse] : [],
@@ -32,7 +33,19 @@ export async function getAllAgents(): Promise<Agent[]> {
     // Try Notion first if configured
     const notionAgents = await getAllAgentsFromNotion()
     if (notionAgents.length > 0) {
-      return notionAgents
+      // Check if the Notion agents have valid data (name, slug, description)
+      const validNotionAgents = notionAgents.filter(agent => 
+        agent.name && agent.name.trim() !== '' && 
+        agent.slug && agent.slug.trim() !== '' && 
+        agent.description && agent.description.trim() !== ''
+      )
+      
+      if (validNotionAgents.length > 0) {
+        console.log(`Using ${validNotionAgents.length} valid agents from Notion`)
+        return validNotionAgents
+      } else {
+        console.warn('Notion agents found but data is incomplete, falling back to local data')
+      }
     }
 
     // Try Supabase as fallback if available
@@ -64,7 +77,7 @@ export async function getAgentBySlug(slug: string): Promise<Agent | null> {
   try {
     // Try Notion first if configured
     const notionAgent = await getAgentBySlugFromNotion(slug)
-    if (notionAgent) {
+    if (notionAgent && notionAgent.name && notionAgent.name.trim() !== '') {
       return notionAgent
     }
 

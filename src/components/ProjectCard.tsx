@@ -11,21 +11,6 @@ interface ProjectCardProps {
 }
 
 export function ProjectCard({ project, className }: ProjectCardProps) {
-  const getStatusDisplay = (status: string) => {
-    switch (status.toLowerCase()) {
-      case "in progress":
-        return "In Progress"
-      case "planning":
-        return "Planning"
-      case "research":
-        return "Research"
-      case "completed":
-        return "Completed"
-      default:
-        return status
-    }
-  }
-
   return (
     <Link href={`/projects/${project.slug}`}>
       <Card className={cn("group hover:shadow-lg transition-all duration-300 cursor-pointer flex flex-col h-full", className)}>
@@ -42,11 +27,11 @@ export function ProjectCard({ project, className }: ProjectCardProps) {
             <Badge 
               variant="secondary" 
               className={cn(
-                "text-xs font-medium whitespace-nowrap min-w-fit ml-3",
+                "text-xs font-medium whitespace-nowrap min-w-fit",
                 getStatusColor(project.status)
               )}
             >
-              {getStatusDisplay(project.status)}
+              {project.status}
             </Badge>
           </div>
         </CardHeader>

@@ -7,6 +7,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card } from "@/components/ui/card"
+import { TimelineSkeleton } from "@/components/ui/loading-skeletons"
 import LinkedItemIcons from "@/components/LinkedItemIcons"
 import { 
   formatDate, 
@@ -70,18 +71,15 @@ export default function TimelinePage() {
         const entries = data.entries
         setAllEntries(entries)
         
-        // Check if we're using fallback data
+        // Check if we're using Notion or local fallback data
         const milestoneEntries = entries.filter((entry: TimelineEntry) => entry.type === 'milestone')
         if (milestoneEntries.length > 0) {
-          // Check if we have actual Notion IDs (long UUIDs) vs local IDs (short like "milestone-1")
-          const hasNotionIds = milestoneEntries.some((entry: TimelineEntry) => 
-            entry.id.startsWith('milestone-') && entry.id.length > 20 // Notion IDs are much longer
-          )
-          if (hasNotionIds) {
-            console.log('✅ Timeline loaded with Notion milestones')
-          } else {
-            console.log('📝 Timeline loaded with local fallback milestones')
-          }
+          // Notion page IDs are 36-char UUID-like; local fallback ids are like "milestone-1"
+          const looksLikeNotionId = (id: string) => id.length >= 30 && !id.startsWith('milestone-')
+          const hasNotionIds = milestoneEntries.some((entry: TimelineEntry) => looksLikeNotionId(entry.id))
+          console.log(hasNotionIds 
+            ? '✅ Timeline loaded with Notion milestones' 
+            : '📝 Timeline loaded with local fallback milestones')
         }
         
         // Debug: Log the actual milestone IDs to see what we're getting
@@ -146,12 +144,9 @@ export default function TimelinePage() {
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="text-center py-12"
+                transition={{ duration: 0.3 }}
               >
-                <div className="flex items-center justify-center gap-3">
-                  <Loader2 className="h-6 w-6 animate-spin text-vision-ochre" />
-                  <span className="text-vision-charcoal">Loading timeline...</span>
-                </div>
+                <TimelineSkeleton />
               </motion.div>
             ) : error ? (
               <motion.div

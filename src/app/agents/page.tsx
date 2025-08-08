@@ -1,12 +1,39 @@
+'use client'
+
+import { useState, useEffect } from 'react'
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { getAllAgents } from "@/lib/agents"
 import { AgentCard } from "@/components/AgentCard"
+import { AgentCardSkeleton } from "@/components/ui/loading-skeletons"
 import type { Agent } from "@/types"
 
-export default async function AgentsPage() {
-  const agents = await getAllAgents()
+export default function AgentsPage() {
+  const [agents, setAgents] = useState<Agent[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchAgents = async () => {
+      try {
+        // Try to fetch from API first
+        const response = await fetch('/api/agents')
+        const data = await response.json()
+        
+        if (data.success && data.agents.length > 0) {
+          setAgents(data.agents)
+        } else {
+          setAgents([])
+        }
+      } catch (error) {
+        console.error('Error fetching agents:', error)
+        setAgents([])
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchAgents()
+  }, [])
 
   return (
     <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8">
@@ -23,35 +50,18 @@ export default async function AgentsPage() {
         </div>
 
         {/* Agents Grid */}
-        {agents.length > 0 ? (
+        {loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {Array.from({ length: 6 }).map((_, index) => (
+              <AgentCardSkeleton key={index} />
+            ))}
+          </div>
+        ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {agents.map((agent: Agent) => (
               <AgentCard key={agent.id} agent={agent} />
             ))}
           </div>
-        ) : (
-          <Card className="max-w-2xl mx-auto">
-            <CardHeader className="text-center">
-              <CardTitle className="text-2xl text-vision-charcoal">
-                🚧 No Agents Available
-              </CardTitle>
-              <CardDescription className="text-lg">
-                No agents are currently available
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="text-center space-y-6">
-              <p className="text-vision-charcoal/70">
-                Check back soon for new AI agents and automated workflows.
-              </p>
-              <div className="pt-4">
-                <Button variant="vision" asChild>
-                  <Link href="/">
-                    Back to Home
-                  </Link>
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
         )}
 
         {/* Coming Soon Notice */}

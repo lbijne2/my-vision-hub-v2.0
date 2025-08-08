@@ -38,5 +38,35 @@
     "icon": "🏥",
     "color": "bg-pastel-blue",
     "linked_items": ["project:ai-medical-diagnostics", "post:future-of-ai-in-healthcare", "agent:clinical-summarizer"]
+  },
+  {
+    "id": "milestone-5",
+    "title": "Advanced AI Agent Development",
+    "type": "milestone",
+    "date": "2025-12-15",
+    "description": "Launch of advanced AI agents with enhanced capabilities for creative and analytical workflows.",
+    "icon": "🧠",
+    "color": "bg-pastel-purple",
+    "linked_items": ["agent:creative-assistant", "agent:research-analyzer"]
+  },
+  {
+    "id": "milestone-6",
+    "title": "Ethical AI Framework v2.0",
+    "type": "milestone",
+    "date": "2025-11-20",
+    "description": "Release of the enhanced ethical AI framework with practical implementation guidelines and case studies.",
+    "icon": "⚖️",
+    "color": "bg-pastel-sage",
+    "linked_items": ["project:ethical-design-framework", "post:ethical-ai-implementation"]
+  },
+  {
+    "id": "milestone-7",
+    "title": "Healthcare AI Platform Launch",
+    "type": "milestone",
+    "date": "2025-10-10",
+    "description": "Public launch of the healthcare AI platform with initial diagnostic tools and patient care features.",
+    "icon": "🏥",
+    "color": "bg-pastel-blue",
+    "linked_items": ["project:ai-medical-diagnostics", "agent:clinical-summarizer"]
   }
 ] 

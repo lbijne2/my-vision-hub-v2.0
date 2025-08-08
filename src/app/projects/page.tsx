@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Skeleton } from "@/components/ui/skeleton"
 import { ProjectCard } from "@/components/ProjectCard"
 import { ProjectFilters } from "@/components/ProjectFilters"
+import { ProjectCardSkeleton } from "@/components/ui/loading-skeletons"
 import type { Project } from '@/types'
 
 export default function ProjectsPage() {
@@ -17,14 +18,15 @@ export default function ProjectsPage() {
   useEffect(() => {
     const fetchProjects = async () => {
       try {
+        // First try to fetch from API (if Supabase is configured)
         const response = await fetch('/api/projects')
         const data = await response.json()
         
-        if (data.success) {
+        if (data.success && data.projects.length > 0) {
+          // Use projects from API
           setProjects(data.projects)
           setFilteredProjects(data.projects)
         } else {
-          console.error('Error fetching projects:', data.error)
           setProjects([])
           setFilteredProjects([])
         }
@@ -48,10 +50,15 @@ export default function ProjectsPage() {
     return (
       <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
-          {/* Header Skeleton */}
+          {/* Header with actual title and subtitle */}
           <div className="text-center mb-12">
-            <Skeleton className="h-12 w-48 mx-auto mb-4" />
-            <Skeleton className="h-6 w-96 mx-auto" />
+            <h1 className="text-4xl font-bold text-vision-charcoal mb-4">
+              Projects
+            </h1>
+            <p className="text-xl text-vision-charcoal/70 max-w-3xl mx-auto">
+              Explore ongoing work, research, and explorations at the intersection 
+              of technology, medicine, design, and human potential.
+            </p>
           </div>
 
           {/* Filters Skeleton */}
@@ -73,30 +80,7 @@ export default function ProjectsPage() {
           {/* Projects Grid Skeleton */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {Array.from({ length: 6 }).map((_, index) => (
-              <Card key={index} className="h-full">
-                <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between">
-                    <div className="space-y-2 flex-1">
-                      <Skeleton className="h-6 w-3/4" />
-                      <Skeleton className="h-4 w-1/2" />
-                    </div>
-                    <Skeleton className="h-6 w-16" />
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <Skeleton className="h-4 w-full" />
-                  <Skeleton className="h-4 w-3/4" />
-                  <div className="flex gap-2 flex-wrap">
-                    <Skeleton className="h-6 w-12" />
-                    <Skeleton className="h-6 w-16" />
-                    <Skeleton className="h-6 w-14" />
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <Skeleton className="h-4 w-20" />
-                    <Skeleton className="h-9 w-24" />
-                  </div>
-                </CardContent>
-              </Card>
+              <ProjectCardSkeleton key={index} />
             ))}
           </div>
         </div>
@@ -113,73 +97,31 @@ export default function ProjectsPage() {
             Projects
           </h1>
           <p className="text-xl text-vision-charcoal/70 max-w-3xl mx-auto">
-            A collection of ongoing and completed projects exploring the intersection 
+            Explore ongoing work, research, and explorations at the intersection 
             of technology, medicine, design, and human potential.
           </p>
         </div>
 
         {/* Filters */}
-        {projects.length > 0 && (
-          <ProjectFilters 
-            projects={projects} 
-            onFiltersChange={handleFiltersChange}
-            filteredCount={filteredProjects.length}
-          />
-        )}
+        <ProjectFilters 
+          projects={projects} 
+          onFiltersChange={setFilteredProjects}
+          filteredCount={filteredProjects.length}
+        />
 
         {/* Projects Grid */}
-        {filteredProjects.length > 0 ? (
+        {loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {Array.from({ length: 6 }).map((_, index) => (
+              <ProjectCardSkeleton key={index} />
+            ))}
+          </div>
+        ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {filteredProjects.map((project) => (
               <ProjectCard key={project.id} project={project} />
             ))}
           </div>
-        ) : projects.length > 0 ? (
-          <Card className="max-w-2xl mx-auto">
-            <CardHeader className="text-center">
-              <CardTitle className="text-2xl text-vision-charcoal">
-                 No Projects Found
-              </CardTitle>
-              <CardDescription className="text-lg">
-                No projects match your current filters
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="text-center space-y-6">
-              <p className="text-vision-charcoal/70">
-                Try adjusting your search terms or filters to find what you're looking for.
-              </p>
-              <div className="pt-4">
-                <Button variant="vision" asChild>
-                  <Link href="/projects">
-                    View All Projects
-                  </Link>
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        ) : (
-          <Card className="max-w-2xl mx-auto">
-            <CardHeader className="text-center">
-              <CardTitle className="text-2xl text-vision-charcoal">
-                🚧 No Projects Available
-              </CardTitle>
-              <CardDescription className="text-lg">
-                No projects are currently available
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="text-center space-y-6">
-              <p className="text-vision-charcoal/70">
-                Check back soon for new projects, or configure your Supabase integration to start managing projects.
-              </p>
-              <div className="pt-4">
-                <Button variant="vision" asChild>
-                  <Link href="/">
-                    Back to Home
-                  </Link>
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
         )}
 
         {/* Coming Soon Notice */}

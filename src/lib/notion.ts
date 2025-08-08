@@ -59,13 +59,18 @@ interface NotionDatabaseEntry {
 interface NotionMilestoneEntry {
   id: string
   properties: {
-    title: { title: Array<{ plain_text: string }> }
-    date: { date: { start: string } | null }
-    type: { select: { name: string } | null }
-    status: { select: { name: string } | null }
-    description: { rich_text: Array<{ plain_text: string }> }
-    published: { checkbox: boolean }
-    linked_items: { relation: Array<{ id: string }> }
+    Name: { title: Array<{ plain_text: string }> }
+    Slug: { rich_text: Array<{ plain_text: string }> }
+    Date: { date: { start: string } | null }
+    Description: { rich_text: Array<{ plain_text: string }> }
+    Status: { select: { name: string } | null }
+    Type: { select: { name: string } | null }
+    Icon: { rich_text: Array<{ plain_text: string }> }
+    Color: { rich_text: Array<{ plain_text: string }> }
+    Published: { checkbox: boolean }
+    Projects: { relation: Array<{ id: string }> }
+    BlogPosts: { relation: Array<{ id: string }> }
+    Agents: { relation: Array<{ id: string }> }
     lastEdited: { last_edited_time: string }
   }
 }
@@ -76,6 +81,33 @@ const notion = new Client({
 })
 
 const notionToMd = new NotionToMarkdown({ notionClient: notion })
+
+// Simple in-memory cache for Notion page ID -> slug to reduce API calls
+// Lives for the process lifetime; acceptable for server runtime and dev
+const notionPageSlugCache: Map<string, string> = new Map()
+
+async function getSlugForPageId(pageId: string): Promise<string> {
+  const cached = notionPageSlugCache.get(pageId)
+  if (cached) return cached
+  try {
+    const page: any = await notion.pages.retrieve({ page_id: pageId })
+    const properties = page.properties as any
+    const slug = getTextFromProperty(properties?.slug) ||
+                 getTextFromProperty(properties?.Slug) ||
+                 getTextFromProperty(properties?.title)?.toLowerCase().replace(/\s+/g, '-') ||
+                 page.id
+    notionPageSlugCache.set(pageId, slug)
+    return slug
+  } catch (error) {
+    console.error(`Error fetching page ${pageId}:`, error)
+    return pageId
+  }
+}
+
+// Milestones fetch cache (TTL)
+type MilestonesCacheEntry = { data: Milestone[]; expiresAt: number }
+let milestonesCacheEntry: MilestonesCacheEntry | null = null
+let milestonesInFlight: Promise<Milestone[]> | null = null
 
 // Helper function to safely get text from Notion properties
 function getTextFromProperty(property: any): string {
@@ -93,6 +125,15 @@ function getTextFromProperty(property: any): string {
 function getTagsFromProperty(property: any): string[] {
   if (!property || !property.multi_select) return []
   return property.multi_select.map((tag: any) => tag.name)
+}
+
+// Helper to safely get a property by trying multiple possible names
+function getProperty(properties: any, names: string[]): any {
+  if (!properties) return undefined
+  for (const name of names) {
+    if (properties[name] !== undefined) return properties[name]
+  }
+  return undefined
 }
 
 // Helper function to fetch related content from relation properties
@@ -397,14 +438,66 @@ export async function getAllProjects(): Promise<Project[]> {
         ],
       })
 
-      const projects: Project[] = response.results.map((page: any) => {
+      const projects: Project[] = await Promise.all(response.results.map(async (page: any) => {
         if (!page.properties) {
           console.warn('Project page missing properties:', page.id)
           return null
         }
         
         const properties = page.properties
-        
+
+        // Attempt to resolve parent project relation if present
+        let parentProject: { title: string; slug: string } | undefined
+        const parentProp = getProperty(properties, ['Parent Project', 'Parent project', 'parentProject', 'ParentProject', 'parent project'])
+        if (parentProp?.relation?.length) {
+          const parentId = parentProp.relation[0]?.id as string
+          if (parentId) {
+            const parentSlug = await getSlugForPageId(parentId)
+            try {
+              const parentPage: any = await notion.pages.retrieve({ page_id: parentId })
+              const parentTitle = getTextFromProperty(getProperty(parentPage?.properties, ['title', 'Title', 'Name'])) || ''
+              parentProject = { title: parentTitle || parentSlug, slug: parentSlug }
+            } catch {
+              parentProject = { title: parentSlug, slug: parentSlug }
+            }
+          }
+        }
+
+        // Query child projects where Parent Project points to this page
+        let childProjects: Array<{ title: string; slug: string }> | undefined
+        try {
+          const parentPropertyCandidates = ['Parent Project', 'Parent project', 'parentProject', 'ParentProject', 'parent project']
+          let childrenResp: any = null
+          for (const propName of parentPropertyCandidates) {
+            try {
+              childrenResp = await notion.databases.query({
+                database_id: process.env.NOTION_PROJECT_DB_ID!,
+                filter: {
+                  property: propName,
+                  relation: { contains: page.id },
+                },
+                sorts: [{ property: 'title', direction: 'ascending' }],
+              })
+              if (childrenResp?.results?.length) {
+                console.log(`Found ${childrenResp.results.length} child projects for ${getTextFromProperty(properties.title)}`)
+                break
+              }
+            } catch (e) {
+              // try next candidate
+            }
+          }
+          if (childrenResp?.results?.length) {
+            childProjects = await Promise.all(childrenResp.results.map(async (child: any) => {
+              const childProps = child.properties
+              const childSlug = getTextFromProperty(getProperty(childProps, ['slug', 'Slug'])) || (await getSlugForPageId(child.id))
+              const childTitle = getTextFromProperty(getProperty(childProps, ['title', 'Title', 'Name']))
+              return { title: childTitle || childSlug, slug: childSlug }
+            }))
+          }
+        } catch (err) {
+          console.warn('Error fetching child projects for', getTextFromProperty(properties.title), err)
+        }
+
         return {
           id: page.id,
           title: getTextFromProperty(properties.title),
@@ -421,8 +514,10 @@ export async function getAllProjects(): Promise<Project[]> {
           notion_url: page.url,
           created_at: properties.date?.date?.start || new Date().toISOString(),
           updated_at: page.last_edited_time,
+          parentProject,
+          childProjects,
         }
-      }).filter(Boolean) as Project[]
+      })).then(results => results.filter(Boolean) as Project[])
 
       if (projects.length > 0) {
         return projects
@@ -463,6 +558,9 @@ export async function getAllProjects(): Promise<Project[]> {
     notion_url: undefined, // Not available in local data
     created_at: project.date,
     updated_at: project.date,
+    parentProject: project.parentProject,
+    childProjects: project.childProjects,
+    siblingProjects: (project as any).siblingProjects || [],
   }))
 }
 
@@ -471,15 +569,29 @@ export async function getProjectBySlug(slug: string): Promise<Project | null> {
   try {
     // Try Notion first if configured
     if (process.env.NOTION_API_KEY && process.env.NOTION_PROJECT_DB_ID) {
-      const response = await notion.databases.query({
-        database_id: process.env.NOTION_PROJECT_DB_ID,
-        filter: {
-          property: 'slug',
-          rich_text: {
-            equals: slug,
-          },
-        },
-      })
+      // Try multiple slug property name candidates to avoid schema mismatches
+      const slugPropertyCandidates = ['slug', 'Slug']
+      let response: any = null
+      for (const propName of slugPropertyCandidates) {
+        try {
+          const resp = await notion.databases.query({
+            database_id: process.env.NOTION_PROJECT_DB_ID,
+            filter: {
+              property: propName,
+              rich_text: { equals: slug },
+            },
+          })
+          if (resp?.results?.length) {
+            response = resp
+            break
+          }
+        } catch (e) {
+          // try next candidate
+        }
+      }
+      if (!response) {
+        return null
+      }
 
       if (response.results.length === 0) {
         return null
@@ -510,6 +622,116 @@ export async function getProjectBySlug(slug: string): Promise<Project | null> {
       let relatedMilestones = await fetchRelatedContent(properties.milestones)
       let relatedAgents = await fetchRelatedContent(properties.agents)
 
+      // Resolve parent project relation
+      let parentProject: { title: string; slug: string } | undefined
+      const parentProp = getProperty(properties, ['Parent Project', 'Parent project', 'parentProject', 'ParentProject', 'parent project'])
+      if (parentProp?.relation?.length) {
+        const parentId = parentProp.relation[0]?.id as string
+        if (parentId) {
+          const parentSlug = await getSlugForPageId(parentId)
+          try {
+            const parentPage: any = await notion.pages.retrieve({ page_id: parentId })
+            const parentTitle = getTextFromProperty(getProperty(parentPage?.properties, ['title', 'Title', 'Name'])) || ''
+            parentProject = { title: parentTitle || parentSlug, slug: parentSlug }
+          } catch {
+            parentProject = { title: parentSlug, slug: parentSlug }
+          }
+        }
+      }
+
+      // Query child projects where Parent Project points to this page
+      let childProjects: Array<{ title: string; slug: string }> | undefined
+      // Query sibling projects if this project has a parent (excluding current project)
+      let siblingProjects: Array<{ title: string; slug: string }> | undefined
+      
+      try {
+        const parentPropertyCandidates = ['Parent Project', 'Parent project', 'parentProject', 'ParentProject', 'parent project']
+        let childrenResp: any = null
+        for (const propName of parentPropertyCandidates) {
+          try {
+            childrenResp = await notion.databases.query({
+              database_id: process.env.NOTION_PROJECT_DB_ID!,
+              filter: {
+                property: propName,
+                relation: { contains: page.id },
+              },
+              sorts: [{ property: 'title', direction: 'ascending' }],
+            })
+            if (childrenResp?.results?.length) {
+              console.log(`Found ${childrenResp.results.length} child projects using relation property: ${propName}`)
+              break
+            }
+          } catch (e) {
+            // try next candidate
+          }
+        }
+        if (childrenResp?.results?.length) {
+          childProjects = await Promise.all(childrenResp.results.map(async (child: any) => {
+            const childProps = child.properties
+            const childSlug = getTextFromProperty(getProperty(childProps, ['slug', 'Slug'])) || (await getSlugForPageId(child.id))
+            const childTitle = getTextFromProperty(getProperty(childProps, ['title', 'Title', 'Name']))
+            return { title: childTitle || childSlug, slug: childSlug }
+          }))
+        } else {
+          console.log('No child projects found for parent page:', slug)
+        }
+
+        // If this project has a parent, fetch siblings (other children of the same parent)
+        if (parentProject) {
+          let siblingsResp: any = null
+          for (const propName of parentPropertyCandidates) {
+            try {
+              // Find the parent page ID first
+              const parentPageResp = await notion.databases.query({
+                database_id: process.env.NOTION_PROJECT_DB_ID!,
+                filter: {
+                  property: 'slug',
+                  rich_text: { equals: parentProject.slug },
+                },
+              })
+              
+              if (parentPageResp?.results?.length) {
+                const parentPageId = parentPageResp.results[0].id
+                
+                // Query all projects that have this parent
+                siblingsResp = await notion.databases.query({
+                  database_id: process.env.NOTION_PROJECT_DB_ID!,
+                  filter: {
+                    property: propName,
+                    relation: { contains: parentPageId },
+                  },
+                  sorts: [{ property: 'title', direction: 'ascending' }],
+                })
+                
+                if (siblingsResp?.results?.length) {
+                  console.log(`Found ${siblingsResp.results.length} sibling projects using relation property: ${propName}`)
+                  break
+                }
+              }
+            } catch (e) {
+              // try next candidate
+            }
+          }
+          
+          if (siblingsResp?.results?.length) {
+            siblingProjects = await Promise.all(
+              siblingsResp.results
+                .filter((sibling: any) => sibling.id !== page.id) // Exclude current project
+                .map(async (sibling: any) => {
+                  const siblingProps = sibling.properties
+                  const siblingSlug = getTextFromProperty(getProperty(siblingProps, ['slug', 'Slug'])) || (await getSlugForPageId(sibling.id))
+                  const siblingTitle = getTextFromProperty(getProperty(siblingProps, ['title', 'Title', 'Name']))
+                  return { title: siblingTitle || siblingSlug, slug: siblingSlug }
+                })
+            )
+          } else {
+            console.log('No sibling projects found for', slug)
+          }
+        }
+      } catch (err) {
+        console.warn('Error fetching child/sibling projects for', slug, err)
+      }
+
       console.log(`Project "${getTextFromProperty(properties.title)}" related content:`, {
         projects: relatedProjects,
         blogPosts: relatedBlogPosts,
@@ -522,8 +744,8 @@ export async function getProjectBySlug(slug: string): Promise<Project | null> {
 
       return {
         id: page.id,
-        title: getTextFromProperty(properties.title),
-        slug: getTextFromProperty(properties.slug),
+        title: getTextFromProperty(getProperty(properties, ['title', 'Title', 'Name']) || properties.title),
+        slug: getTextFromProperty(getProperty(properties, ['slug', 'Slug']) || properties.slug),
         subtitle: getTextFromProperty(properties.subtitle),
         category: getTextFromProperty(properties.category),
         description: getTextFromProperty(properties.description),
@@ -539,7 +761,10 @@ export async function getProjectBySlug(slug: string): Promise<Project | null> {
         relatedProjects,
         relatedBlogPosts,
         relatedMilestones,
-        relatedAgents
+        relatedAgents,
+        parentProject,
+        childProjects,
+        siblingProjects
       }
     }
 
@@ -577,6 +802,9 @@ export async function getProjectBySlug(slug: string): Promise<Project | null> {
     notion_url: undefined, // Not available in local data
     created_at: fallbackProject.date,
     updated_at: fallbackProject.date,
+    parentProject: fallbackProject.parentProject,
+    childProjects: fallbackProject.childProjects,
+    siblingProjects: (fallbackProject as any).siblingProjects || [],
     relatedProjects: [],
     relatedBlogPosts: [],
     relatedMilestones: [],
@@ -597,30 +825,52 @@ export async function getProjectSlugs(): Promise<string[]> {
 
 // Fetch all published milestones from Notion
 export async function getMilestonesFromNotion(): Promise<Milestone[]> {
+  // Serve from in-memory cache if still fresh (30s TTL)
+  const now = Date.now()
+  if (milestonesCacheEntry && milestonesCacheEntry.expiresAt > now) {
+    return milestonesCacheEntry.data
+  }
+  // Coalesce concurrent calls
+  if (milestonesInFlight) return milestonesInFlight
+
+  milestonesInFlight = (async () => {
   // Try Notion first if configured
   if (process.env.NOTION_API_KEY && process.env.NOTION_MILESTONES_DB_ID) {
     console.log('Notion integration configured, fetching milestones from Notion...')
     console.log('Database ID:', process.env.NOTION_MILESTONES_DB_ID)
     
     try {
-      const response = await notion.databases.query({
+      // Try with strict filters if caller configured them elsewhere;
+      // If that yields 0 results, retry without filters to avoid property name mismatches.
+      let response = await notion.databases.query({
         database_id: process.env.NOTION_MILESTONES_DB_ID,
         filter: {
-          property: 'published',
+          property: 'Published',
           checkbox: {
             equals: true,
           },
         },
         sorts: [
-          {
-            property: 'date',
-            direction: 'descending',
-          },
+          { property: 'Date', direction: 'descending' },
         ],
+      }).catch((err) => {
+        console.warn('Strict Notion query failed, will retry without filters:', err)
+        return null as any
       })
+
+      if (!response || (response.results?.length ?? 0) === 0) {
+        console.log('Strict Notion query returned no results. Retrying without filters...')
+        response = await notion.databases.query({
+          database_id: process.env.NOTION_MILESTONES_DB_ID,
+        })
+      }
 
       console.log('Notion response received, processing milestones...')
       console.log('Number of results:', response.results.length)
+      if (response.results.length > 0) {
+        const first = response.results[0] as any
+        console.log('First milestone available properties:', first?.properties ? Object.keys(first.properties) : 'none')
+      }
 
       const milestonePromises = response.results.map(async (page: any) => {
         if (!page.properties) {
@@ -628,72 +878,63 @@ export async function getMilestonesFromNotion(): Promise<Milestone[]> {
           return null
         }
         
-        const properties = page.properties as NotionMilestoneEntry['properties']
+        const properties = page.properties as any
+
+        // Helpers to get property by possible names
+        const getProp = (names: string[]) => {
+          for (const name of names) {
+            if (properties[name] !== undefined) return properties[name]
+          }
+          return undefined
+        }
+
+        // Determine published flag (default true if property missing to avoid hiding everything)
+        const publishedProp = getProp(['Published', 'published', 'Visible', 'visible'])
+        const isPublished = typeof publishedProp?.checkbox === 'boolean' ? publishedProp.checkbox : true
+        if (!isPublished) {
+          return null
+        }
         
-        // Get linked items from relation
+        // Get linked items from all relation properties
         let linkedItems: string[] = []
         
-        // Check the linked_items property (relation type)
-        const linkedItemsProperty = properties.linked_items
-        console.log('  - Raw linked_items property:', linkedItemsProperty)
+        // Process Projects relations (try multiple keys)
+        const projectsRel = getProp(['Projects', 'projects', 'Project', 'project'])
+        if (projectsRel?.relation) {
+          const projectIds = projectsRel.relation.map((item: any) => item.id as string)
+          const projectSlugs = await Promise.all(projectIds.map((id: string) => getSlugForPageId(id)))
+          linkedItems.push(...projectSlugs.map((slug) => `project:${slug}`))
+        }
         
-        if (linkedItemsProperty?.relation) {
-          // For relations, we need to fetch the related pages to get their slugs
-          const relationIds = linkedItemsProperty.relation.map((item: any) => item.id)
-          console.log('  - Relation IDs:', relationIds)
-          
-          // Fetch related pages to get their properties
-          const relatedPages = await Promise.all(
-            relationIds.map(async (id) => {
-              try {
-                const page = await notion.pages.retrieve({ page_id: id })
-                return page
-              } catch (error) {
-                console.error(`Error fetching related page ${id}:`, error)
-                return null
-              }
-            })
-          )
-          
-          // Process related pages to extract slugs and determine types
-          linkedItems = relatedPages
-            .filter(Boolean)
-            .map((page: any) => {
-              if (!page.properties) return null
-              
-              // Try to get slug from different possible properties
-              const slug = getTextFromProperty(page.properties.slug) || 
-                          getTextFromProperty(page.properties.title)?.toLowerCase().replace(/\s+/g, '-') ||
-                          page.id
-              
-              // Determine type based on page properties or URL
-              let type = 'project' // default
-              if (page.properties.status?.select?.name === 'agent' || 
-                  page.properties.type?.select?.name === 'agent') {
-                type = 'agent'
-              } else if (page.properties.status?.select?.name === 'post' || 
-                        page.properties.type?.select?.name === 'post') {
-                type = 'post'
-              }
-              
-              return `${type}:${slug}`
-            })
-            .filter(Boolean) as string[]
+        // Process BlogPosts relations (try multiple keys)
+        const blogRel = getProp(['BlogPosts', 'blogPosts', 'Posts', 'posts', 'Blog Posts'])
+        if (blogRel?.relation) {
+          const blogIds = blogRel.relation.map((item: any) => item.id as string)
+          const blogSlugs = await Promise.all(blogIds.map((id: string) => getSlugForPageId(id)))
+          linkedItems.push(...blogSlugs.map((slug) => `post:${slug}`))
+        }
+        
+        // Process Agents relations (try multiple keys)
+        const agentsRel = getProp(['Agents', 'agents', 'Agent', 'agent'])
+        if (agentsRel?.relation) {
+          const agentIds = agentsRel.relation.map((item: any) => item.id as string)
+          const agentSlugs = await Promise.all(agentIds.map((id: string) => getSlugForPageId(id)))
+          linkedItems.push(...agentSlugs.map((slug) => `agent:${slug}`))
         }
         
         console.log('  - Extracted linked items:', linkedItems)
         
-        // Determine icon and color based on type
-        const type = properties.type?.select?.name || 'milestone'
-        const icon = getMilestoneIcon(type)
-        const color = getMilestoneColor(type)
+        // Get icon and color from Notion properties, with fallbacks
+        const typeSelect = (getProp(['Type', 'type']) as any)?.select?.name || 'custom'
+        const icon = getTextFromProperty(getProp(['Icon', 'icon'])) || getMilestoneIcon(typeSelect)
+        const color = getTextFromProperty(getProp(['Color', 'color'])) || getMilestoneColor(typeSelect)
         
         const milestone = {
           id: page.id,
-          title: getTextFromProperty(properties.title),
-          type: type,
-          date: properties.date?.date?.start || new Date().toISOString(),
-          description: getTextFromProperty(properties.description),
+          title: getTextFromProperty(getProp(['Name', 'name', 'Title', 'title'])),
+          type: typeSelect,
+          date: (getProp(['Date', 'date']) as any)?.date?.start || new Date().toISOString(),
+          description: getTextFromProperty(getProp(['Description', 'description'])),
           icon: icon,
           color: color,
           linked_items: linkedItems,
@@ -702,30 +943,24 @@ export async function getMilestonesFromNotion(): Promise<Milestone[]> {
         console.log('Processed milestone:', milestone.title)
         console.log('  - Linked items:', linkedItems)
         console.log('  - Properties available:', Object.keys(properties))
-        console.log('  - Raw linked_items property:', properties.linked_items)
         return milestone
       })
       
       const milestoneResults = await Promise.all(milestonePromises)
-      const milestones: Milestone[] = milestoneResults.filter(Boolean) as Milestone[]
+      // Apply sorting by date desc here to replace removed API sort
+      const milestones: Milestone[] = (milestoneResults.filter(Boolean) as Milestone[])
+        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
 
       if (milestones.length > 0) {
         console.log(`Loaded ${milestones.length} milestones from Notion`)
-        
-        // Check if any milestones have linked items
-        const hasLinkedItems = milestones.some(milestone => milestone.linked_items && milestone.linked_items.length > 0)
-        
-        if (!hasLinkedItems) {
-          console.log('Notion milestones have no linked items, using local data with linked items')
-          return milestonesData
-        }
-        
-        return milestones
       } else {
         console.log('No published milestones found in Notion database')
       }
+      return milestones
     } catch (error) {
       console.error('Error fetching milestones from Notion:', error)
+      // Notion configured but errored → do not use local fallback; return empty
+      return []
     }
   } else {
     console.log('Notion integration not configured - missing NOTION_API_KEY or NOTION_MILESTONES_DB_ID')
@@ -734,14 +969,108 @@ export async function getMilestonesFromNotion(): Promise<Milestone[]> {
   // Fallback to local data
   console.log('Using fallback milestone data from local JSON')
   return milestonesData
+  })()
+
+  try {
+    const result = await milestonesInFlight
+    milestonesCacheEntry = { data: result, expiresAt: Date.now() + 30_000 }
+    return result
+  } finally {
+    milestonesInFlight = null
+  }
+}
+
+// Fetch all milestones from Notion with the new structure
+export async function getAllMilestonesFromNotion(): Promise<{
+  id: string;
+  title: string;
+  date: string;
+  description?: string;
+  status: "planned" | "active" | "completed";
+  type: "fellowship" | "launch" | "research" | "custom";
+  icon?: string;
+  color?: string;
+  relatedProjects?: string[];
+  relatedBlogPosts?: string[];
+  relatedAgents?: string[];
+}[]> {
+  try {
+    const milestones = await getMilestonesFromNotion()
+    
+    return milestones.map(milestone => {
+      // Parse linked items to separate arrays
+      const relatedProjects: string[] = []
+      const relatedBlogPosts: string[] = []
+      const relatedAgents: string[] = []
+      
+      if (milestone.linked_items) {
+        milestone.linked_items.forEach(item => {
+          const [type, slug] = item.split(':')
+          switch (type) {
+            case 'project':
+              relatedProjects.push(slug)
+              break
+            case 'post':
+              relatedBlogPosts.push(slug)
+              break
+            case 'agent':
+              relatedAgents.push(slug)
+              break
+          }
+        })
+      }
+      
+      return {
+        id: milestone.id,
+        title: milestone.title,
+        date: milestone.date,
+        description: milestone.description,
+        status: milestone.type === 'completed' ? 'completed' : 
+                milestone.type === 'active' ? 'active' : 'planned',
+        type: milestone.type as "fellowship" | "launch" | "research" | "custom",
+        icon: milestone.icon,
+        color: milestone.color,
+        relatedProjects,
+        relatedBlogPosts,
+        relatedAgents
+      }
+    })
+  } catch (error) {
+    console.error('Error fetching all milestones from Notion:', error)
+    return []
+  }
+}
+
+// Fetch future milestones for MiniRoadmap component
+export async function getFutureMilestonesFromNotion(maxItems: number = 5): Promise<Milestone[]> {
+  try {
+    const allMilestones = await getMilestonesFromNotion()
+    const today = new Date()
+    
+    // Filter for future milestones (date > today or status = "planned")
+    const futureMilestones = allMilestones
+      .filter(milestone => {
+        const milestoneDate = new Date(milestone.date)
+        return milestoneDate > today
+      })
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+      .slice(0, maxItems)
+    
+    return futureMilestones
+  } catch (error) {
+    console.error('Error fetching future milestones:', error)
+    return []
+  }
 }
 
 // Helper function to get milestone icon based on type
 function getMilestoneIcon(type: string): string {
   const iconMap: { [key: string]: string } = {
-    'milestone': '📌',
+    'fellowship': '🎓',
     'launch': '🚀',
     'research': '🔬',
+    'custom': '📌',
+    'milestone': '📌',
     'development': '⚙️',
     'integration': '🔗',
     'release': '🎉',
@@ -755,9 +1084,11 @@ function getMilestoneIcon(type: string): string {
 // Helper function to get milestone color based on type
 function getMilestoneColor(type: string): string {
   const colorMap: { [key: string]: string } = {
-    'milestone': 'bg-pastel-purple',
+    'fellowship': 'bg-pastel-sage',
     'launch': 'bg-pastel-blue',
-    'research': 'bg-pastel-sage',
+    'research': 'bg-pastel-lavender',
+    'custom': 'bg-pastel-purple',
+    'milestone': 'bg-pastel-purple',
     'development': 'bg-pastel-orange',
     'integration': 'bg-pastel-pink',
     'release': 'bg-pastel-green',
@@ -777,6 +1108,7 @@ function convertLocalAgentToAgent(localAgent: any): Agent {
     status: localAgent.status as 'active' | 'prototype' | 'idea',
     category: localAgent.category,
     description: localAgent.description,
+    content: localAgent.content, // Add content field
     inputs: localAgent.inputs,
     tags: localAgent.tags,
     example_uses: localAgent.exampleUse ? [localAgent.exampleUse] : [],
@@ -824,6 +1156,8 @@ export async function getAllAgentsFromNotion(): Promise<Agent[]> {
         }
         
         const properties = page.properties
+        console.log('Agent properties available:', Object.keys(properties))
+        console.log('Sample agent properties:', JSON.stringify(properties, null, 2))
         
 
         
@@ -832,20 +1166,32 @@ export async function getAllAgentsFromNotion(): Promise<Agent[]> {
         const content = notionToMd.toMarkdownString(mdBlocks)
 
         // Fetch related content
-        let relatedProjects = await fetchRelatedContent(properties.projects)
-        let relatedBlogPosts = await fetchRelatedContent(properties.blogPosts)
-        let relatedMilestones = await fetchRelatedContent(properties.milestones)
+        let relatedProjects = await fetchRelatedContent(properties.Projects)
+        let relatedBlogPosts = await fetchRelatedContent(properties.BlogPosts)
+        let relatedMilestones = await fetchRelatedContent(properties.Agents)
 
         // Only show related content if it actually exists in Notion
         // No fallback data - if no relations exist, show empty arrays
 
+        const agentName = getTextFromProperty(properties.name)
+        const agentSlug = getTextFromProperty(properties.slug)
+        const agentDescription = getTextFromProperty(properties.description)
+        
+        console.log('Extracted agent data:', {
+          name: agentName,
+          slug: agentSlug,
+          description: agentDescription,
+          status: properties.status?.select?.name || 'idea',
+          category: properties.category?.select?.name || getTextFromProperty(properties.category)
+        })
+        
         return {
           id: page.id,
-          name: getTextFromProperty(properties.name || properties.title),
-          slug: getTextFromProperty(properties.slug),
+          name: agentName,
+          slug: agentSlug,
           status: properties.status?.select?.name || 'idea',
           category: properties.category?.select?.name || getTextFromProperty(properties.category),
-          description: getTextFromProperty(properties.description),
+          description: agentDescription,
           content: content.parent, // Use the page content as content
           inputs: properties.inputs?.multi_select?.map((input: any) => input.name) || [],
           tags: getTagsFromProperty(properties.tags),
@@ -926,16 +1272,16 @@ export async function getAgentBySlugFromNotion(slug: string): Promise<Agent | nu
 
       // Fetch related content
       
-      let relatedProjects = await fetchRelatedContent(properties.projects)
-      let relatedBlogPosts = await fetchRelatedContent(properties.blogPosts)
-      let relatedMilestones = await fetchRelatedContent(properties.milestones)
+      let relatedProjects = await fetchRelatedContent(properties.Projects)
+      let relatedBlogPosts = await fetchRelatedContent(properties.BlogPosts)
+      let relatedMilestones = await fetchRelatedContent(properties.Agents)
 
       // Only show related content if it actually exists in Notion
       // No fallback data - if no relations exist, show empty arrays
 
       return {
         id: page.id,
-        name: getTextFromProperty(properties.name || properties.title),
+        name: getTextFromProperty(properties.name),
         slug: getTextFromProperty(properties.slug),
         status: properties.status?.select?.name || 'idea',
         category: properties.category?.select?.name || getTextFromProperty(properties.category),

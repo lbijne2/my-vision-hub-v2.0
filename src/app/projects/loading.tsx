@@ -5,10 +5,15 @@ export default function ProjectsPageLoading() {
   return (
     <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
-        {/* Header Skeleton */}
+        {/* Header with actual title and subtitle */}
         <div className="text-center mb-12">
-          <Skeleton className="h-12 w-48 mx-auto mb-4" />
-          <Skeleton className="h-6 w-96 mx-auto" />
+          <h1 className="text-4xl font-bold text-vision-charcoal mb-4">
+            Projects
+          </h1>
+          <p className="text-xl text-vision-charcoal/70 max-w-3xl mx-auto">
+            Explore ongoing work, research, and explorations at the intersection 
+            of technology, medicine, design, and human potential.
+          </p>
         </div>
 
         {/* Filters Skeleton */}

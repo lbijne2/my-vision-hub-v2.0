@@ -6,13 +6,13 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { AspectRatio } from "@/components/ui/aspect-ratio"
 import { Separator } from "@/components/ui/separator"
-import { getProjectBySlug, getStatusColor } from "@/lib/projects"
-import { getRepoInfo } from "@/lib/github"
-import { GitHubRepoCard } from "@/components/GitHubRepoCard"
 import { MarkdownRenderer } from "@/components/MarkdownRenderer"
+import LinkedItemIcons from "@/components/LinkedItemIcons"
 import { WidescreenToggle } from "@/components/WidescreenToggle"
-import RelatedContent from "@/components/RelatedContent"
 import { cn, formatDate, formatDateHeader, formatDateFromISO } from "@/lib/utils"
+import { getProjectBySlug, getAllProjects, getStatusColor } from "@/lib/projects"
+import { AsyncGitHubRepo, AsyncRelatedContent } from "@/components/AsyncComponents"
+import type { Metadata } from "next"
 
 interface ProjectPageProps {
   params: Promise<{
@@ -36,16 +36,6 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
     relatedMilestones: project.relatedMilestones,
     relatedAgents: project.relatedAgents
   })
-
-  // Fetch GitHub repository data if available
-  let githubRepoData = null
-  if (project.github_repo) {
-    try {
-      githubRepoData = await getRepoInfo(project.github_repo)
-    } catch (error) {
-      console.error('Error fetching GitHub repository data:', error)
-    }
-  }
 
   return (
     <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8">
@@ -169,6 +159,80 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
                     </p>
                   </div>
                 )}
+
+                {(project.parentProject || (project.childProjects && project.childProjects.length > 0) || (project.siblingProjects && project.siblingProjects.length > 0)) && (
+                  <>
+                    <Separator className="my-6" />
+                    <section className="mt-2" aria-label="Project Structure">
+                      <h3 className="text-2xl text-vision-charcoal font-semibold mb-4">Project Structure</h3>
+                      <div className="text-sm space-y-1">
+                        {/* Parent Project (if exists) */}
+                        {project.parentProject ? (
+                          <div className="flex">
+                            <span className="text-vision-charcoal/70 w-16">Parent:</span>
+                            <Link
+                              href={`/projects/${project.parentProject.slug}`}
+                              className="underline hover:text-vision-ochre"
+                            >
+                              {project.parentProject.title}
+                            </Link>
+                          </div>
+                        ) : (
+                          /* Current project is a parent */
+                          <div className="flex">
+                            <span className="text-vision-charcoal/70 w-16">Current:</span>
+                            <span className="font-medium text-vision-charcoal">{project.title}</span>
+                          </div>
+                        )}
+
+                        {/* Current project (if it has a parent) */}
+                        {project.parentProject && (
+                          <div className="flex">
+                            <span className="text-vision-charcoal/40 w-4">↳</span>
+                            <span className="text-vision-charcoal/70 w-16">Current:</span>
+                            <span className="font-medium text-vision-charcoal">{project.title}</span>
+                          </div>
+                        )}
+
+                        {/* Sibling Projects */}
+                        {project.siblingProjects && project.siblingProjects.length > 0 && 
+                          project.siblingProjects.map((sibling) => (
+                            <div key={sibling.slug} className="flex">
+                              <span className="text-vision-charcoal/40 w-4">↳</span>
+                              <span className="text-vision-charcoal/70 w-16">Sibling:</span>
+                              <Link
+                                href={`/projects/${sibling.slug}`}
+                                className="underline hover:text-vision-ochre"
+                              >
+                                {sibling.title}
+                              </Link>
+                            </div>
+                          ))
+                        }
+
+                        {/* Child Projects */}
+                        {project.childProjects && project.childProjects.length > 0 && 
+                          project.childProjects.map((child) => (
+                            <div key={child.slug} className="flex">
+                              <span className="text-vision-charcoal/40 w-4">↳</span>
+                              <span className="text-vision-charcoal/70 w-16">Child:</span>
+                              <Link
+                                href={`/projects/${child.slug}`}
+                                className="underline hover:text-vision-ochre"
+                              >
+                                {child.title}
+                              </Link>
+                            </div>
+                          ))
+                        }
+
+                        {!project.parentProject && (!project.childProjects || project.childProjects.length === 0) && (!project.siblingProjects || project.siblingProjects.length === 0) && (
+                          <div className="text-vision-charcoal/60">This project has no related hierarchy.</div>
+                        )}
+                      </div>
+                    </section>
+                  </>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -177,41 +241,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
           <div className="space-y-6">
             {/* GitHub Repository Section */}
             {project.github_repo && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg text-vision-charcoal">
-                    GitHub Repository
-                  </CardTitle>
-                  <CardDescription>
-                    Source code and development information
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {githubRepoData ? (
-                    <GitHubRepoCard repoData={githubRepoData} />
-                  ) : (
-                    <div className="text-center py-4">
-                      <p className="text-vision-charcoal/60 mb-4 text-sm">
-                        GitHub information unavailable
-                      </p>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="text-vision-ochre border-vision-ochre hover:bg-vision-ochre/10"
-                        asChild
-                      >
-                        <a 
-                          href={`https://github.com/${project.github_repo}`} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                        >
-                          View on GitHub
-                        </a>
-                      </Button>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
+              <AsyncGitHubRepo repoPath={project.github_repo} />
             )}
 
             {/* Project Status & Info */}
@@ -314,7 +344,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
             )} */}
 
             {/* Related Content */}
-            <RelatedContent
+            <AsyncRelatedContent
               relatedProjects={project.relatedProjects}
               relatedBlogPosts={project.relatedBlogPosts}
               relatedMilestones={project.relatedMilestones}

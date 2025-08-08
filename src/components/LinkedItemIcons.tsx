@@ -1,9 +1,10 @@
 "use client"
 
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import { ChevronDown, FileText, Brain, Calendar, PenTool } from 'lucide-react'
 import { LinkedItem } from '@/lib/timeline'
+import { createPortal } from 'react-dom'
 
 interface LinkedItemIconsProps {
   linkedItems: LinkedItem[]
@@ -38,6 +39,9 @@ function groupLinkedItems(linkedItems: LinkedItem[]) {
 
 export default function LinkedItemIcons({ linkedItems }: LinkedItemIconsProps) {
   const groupedItems = groupLinkedItems(linkedItems)
+  const [hoveredDropdown, setHoveredDropdown] = useState<string | null>(null)
+  const [dropdownPosition, setDropdownPosition] = useState<{ x: number; y: number } | null>(null)
+  const triggerRefs = useRef<Record<string, HTMLDivElement | null>>({})
 
   if (linkedItems.length === 0) return null
 
@@ -69,28 +73,59 @@ export default function LinkedItemIcons({ linkedItems }: LinkedItemIconsProps) {
         } else {
           // Multiple items - show as dropdown
           return (
-            <div key={type} className="relative group pb-2 -mb-2">
+            <div 
+              key={type} 
+              className="relative group pb-2 -mb-2"
+              ref={(el) => {
+                triggerRefs.current[type] = el
+              }}
+              onMouseEnter={() => {
+                const element = triggerRefs.current[type]
+                if (element) {
+                  const rect = element.getBoundingClientRect()
+                  setDropdownPosition({ x: rect.left, y: rect.bottom })
+                  setHoveredDropdown(type)
+                }
+              }}
+              onMouseLeave={() => {
+                setHoveredDropdown(null)
+              }}
+            >
               <div className="flex items-center gap-1 hover:scale-110 transition-all duration-200 cursor-pointer">
                 <span className="text-vision-charcoal hover:text-vision-ochre">{icon}</span>
                 <ChevronDown className="w-3 h-3 group-hover:rotate-180 transition-transform duration-200" />
-              </div>
-              
-              {/* Dropdown */}
-              <div className="absolute top-full left-0 mt-0 bg-white border border-vision-border rounded-lg shadow-lg py-0.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none group-hover:pointer-events-auto z-50 min-w-48">
-                {items.map((item) => (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className="block px-3 py-2 text-sm text-vision-charcoal hover:bg-pastel-cream transition-colors duration-200"
-                  >
-                    {item.label}
-                  </Link>
-                ))}
               </div>
             </div>
           )
         }
       })}
+      
+      {/* Portal-based dropdown */}
+      {hoveredDropdown && dropdownPosition && (() => {
+        const items = groupedItems[hoveredDropdown]
+        return createPortal(
+          <div 
+            className="fixed bg-white border border-vision-border rounded-lg shadow-lg py-0.5 z-50 min-w-48"
+            style={{
+              left: dropdownPosition.x,
+              top: dropdownPosition.y,
+            }}
+            onMouseEnter={() => setHoveredDropdown(hoveredDropdown)}
+            onMouseLeave={() => setHoveredDropdown(null)}
+          >
+            {items.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="block px-3 py-2 text-sm text-vision-charcoal hover:bg-pastel-cream transition-colors duration-200"
+              >
+                {item.label}
+              </Link>
+            ))}
+          </div>,
+          document.body
+        )
+      })()}
     </div>
   )
 } 

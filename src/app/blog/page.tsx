@@ -1,12 +1,39 @@
+'use client'
+
+import { useState, useEffect } from 'react'
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { getBlogPosts } from "@/lib/notion"
 import { BlogPostCard } from "@/components/BlogPostCard"
+import { BlogPostCardSkeleton } from "@/components/ui/loading-skeletons"
 import type { BlogPost } from "@/types"
 
-export default async function BlogPage() {
-  const posts = await getBlogPosts()
+export default function BlogPage() {
+  const [posts, setPosts] = useState<BlogPost[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchBlogPosts = async () => {
+      try {
+        // Try to fetch from API first
+        const response = await fetch('/api/blog-posts')
+        const data = await response.json()
+        
+        if (data.success && data.posts.length > 0) {
+          setPosts(data.posts)
+        } else {
+          setPosts([])
+        }
+      } catch (error) {
+        console.error('Error fetching blog posts:', error)
+        setPosts([])
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchBlogPosts()
+  }, [])
 
   return (
     <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8">
@@ -23,35 +50,18 @@ export default async function BlogPage() {
         </div>
 
         {/* Blog Posts Grid */}
-        {posts.length > 0 ? (
+        {loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {Array.from({ length: 6 }).map((_, index) => (
+              <BlogPostCardSkeleton key={index} />
+            ))}
+          </div>
+        ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {posts.map((post: BlogPost) => (
               <BlogPostCard key={post.id} post={post} />
             ))}
           </div>
-        ) : (
-          <Card className="max-w-2xl mx-auto">
-            <CardHeader className="text-center">
-              <CardTitle className="text-2xl text-vision-charcoal">
-                📝 No Posts Available
-              </CardTitle>
-              <CardDescription className="text-lg">
-                No blog posts are currently available
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="text-center space-y-6">
-              <p className="text-vision-charcoal/70">
-                Check back soon for new posts, or configure your Supabase integration to start managing content.
-              </p>
-              <div className="pt-4">
-                <Button variant="vision" asChild>
-                  <Link href="/">
-                    Back to Home
-                  </Link>
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
         )}
 
         {/* Coming Soon Notice */}

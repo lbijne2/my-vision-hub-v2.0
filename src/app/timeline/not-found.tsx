@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button"
 
 export default function TimelineNotFound() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pastel-cream to-pastel-sage flex items-center justify-center">
+    <div className="min-h-screen pastel-cream flex items-center justify-center">
       <div className="text-center">
         <div className="text-6xl mb-4">📅</div>
         <h1 className="text-2xl font-bold text-vision-charcoal mb-4">

@@ -1,25 +1,8 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { ProjectCard } from "@/components/ProjectCard"
-import projectsData from "@/data/projects.json"
-import type { Project } from "@/types"
+import { AsyncFeaturedProjects, AsyncMiniRoadmap } from "@/components/AsyncComponents"
 
 export default function HomePage() {
-  // Convert local JSON data to Project type
-  const featuredProjects: Project[] = projectsData.slice(0, 3).map((project: any) => ({
-    id: project.id,
-    title: project.title,
-    slug: project.slug,
-    subtitle: project.subtitle,
-    description: project.description,
-    category: project.category,
-    status: project.status as 'active' | 'prototype' | 'archived',
-    tags: project.tags,
-    content: project.content,
-    cover_image_url: project.coverImage,
-    created_at: project.date,
-    updated_at: project.date,
-  }))
 
   return (
     <div className="min-h-screen">
@@ -65,35 +48,12 @@ export default function HomePage() {
       </section>
 
       {/* Featured Projects Section */}
-      <section className="py-16 px-4 sm:px-6 lg:px-8 bg-white/50">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-vision-charcoal mb-4">
-              Featured Projects
-            </h2>
-            <p className="text-lg text-vision-charcoal/70 max-w-2xl mx-auto">
-              Current explorations and ongoing work at the intersection of technology, 
-              medicine, and human potential.
-            </p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {featuredProjects.map((project) => (
-              <ProjectCard key={project.id} project={project} />
-            ))}
-          </div>
-          
-          <div className="text-center mt-12">
-            <Button 
-              variant="outline" 
-              className="border-vision-border text-vision-charcoal hover:bg-vision-ochre/10"
-              asChild
-            >
-              <Link href="/projects">
-                View All Projects
-              </Link>
-            </Button>
-          </div>
+      <AsyncFeaturedProjects maxProjects={3} />
+
+      {/* Mini Roadmap Section */}
+      <section className="pt-0 pb-8 px-4 sm:px-6 lg:px-8 bg-white/50">
+        <div className="max-w-4xl mx-auto">
+          <AsyncMiniRoadmap maxItems={3} />
         </div>
       </section>
 
