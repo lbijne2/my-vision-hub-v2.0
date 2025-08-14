@@ -2,6 +2,28 @@
 @tailwind components;
 @tailwind utilities;
 
+/* KaTeX for math equation rendering */
+@import 'katex/dist/katex.min.css';
+
+/* Highlight.js for syntax highlighting */
+@import 'highlight.js/styles/github.css';
+
+/* Toggle content padding - simple and reliable */
+details > :not(summary) {
+  padding: 1rem;
+  background-color: white;
+}
+
+/* Nested toggle styling - ensure nested details have proper borders */
+details details {
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  margin: 0.5rem 0;
+}
+
+
+
 @layer base {
   :root {
     --background: 0 0% 100%;

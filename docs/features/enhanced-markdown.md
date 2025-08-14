@@ -1,56 +1,37 @@
 # Enhanced Markdown Components
 
-The MarkdownRenderer component has been enhanced with support for advanced markdown features including toggle lists, toggle headings, callouts, block equations, databases, and enhanced tables.
+The MarkdownRenderer component has been enhanced with support for advanced markdown features including toggle lists, callouts, block equations, and enhanced tables.
 
 ## Overview
 
 The enhanced markdown renderer now supports:
 
-1. **Toggle Lists** - Collapsible content sections
-2. **Toggle Headings** - Collapsible heading sections  
-3. **Enhanced Quotes** - Better styled blockquotes
-4. **Callouts** - Special notice boxes (info, warning, error, success)
-5. **Block Equations** - Mathematical formulas using KaTeX
-6. **Database Tables** - Custom styled tables with special syntax
-7. **Enhanced Tables** - GitHub Flavored Markdown tables with better styling
+1. **Toggle Lists** - Collapsible content sections from Notion
+2. **Callouts** - Special notice boxes (info, warning, error, success)
+3. **Block Equations** - Mathematical formulas using KaTeX
+4. **Enhanced Tables** - GitHub Flavored Markdown tables with better styling
+5. **Syntax Highlighting** - Code blocks with language-specific highlighting
 
-## Syntax Guide
+## Toggle Lists (Notion Integration)
 
-### Toggle Lists
+Toggle lists from Notion are automatically converted to HTML `<details>` and `<summary>` elements by the `notion-to-md` library. The enhanced MarkdownRenderer properly handles these elements with custom styling:
 
-Create collapsible content sections using double curly braces:
-
-```markdown
-{{Title|Content goes here}}
+### Example from Notion:
+```html
+<details>
+<summary>Official Models</summary>
+Content inside the toggle list...
+</details>
 ```
 
-**Example:**
-```markdown
-{{FAQ: How does this work?|This is a detailed explanation that can be collapsed or expanded by the user.}}
-```
+### Features:
+- **Collapsible Content**: Click to expand/collapse
+- **Custom Styling**: Vision Hub design system colors
+- **Nested Support**: Toggle lists can contain other toggle lists
+- **Interactive Icons**: Chevron arrow that rotates on toggle
+- **Hover Effects**: Visual feedback on interaction
 
-### Toggle Headings
-
-Create collapsible heading sections by adding double curly braces to any heading:
-
-```markdown
-### {{Collapsible Section}}
-Content under this heading will be collapsible.
-
-## {{Another Toggle Section}}
-This creates a larger collapsible section.
-```
-
-### Enhanced Quotes
-
-Regular blockquote syntax with enhanced styling:
-
-```markdown
-> This is a blockquote with enhanced visual styling
-> including better spacing and background colors.
-```
-
-### Callouts
+## Callouts
 
 Create special notice boxes using triple colons:
 
@@ -78,7 +59,7 @@ This is a success message
 - `error` - Red error/danger callout
 - `success` - Green success callout
 
-### Block Equations
+## Math Equations
 
 Mathematical equations using KaTeX syntax:
 
@@ -91,28 +72,9 @@ $$
 $$
 ```
 
-### Database Tables
+## Enhanced Tables
 
-Custom table syntax for enhanced styling:
-
-```markdown
-|||Header1,Header2,Header3|||
-Row1Col1,Row1Col2,Row1Col3
-Row2Col1,Row2Col2,Row2Col3
-|||
-```
-
-**Example:**
-```markdown
-|||Name,Role,Department|||
-John Doe,Engineer,Development
-Jane Smith,Manager,Product
-|||
-```
-
-### Enhanced Tables
-
-Regular GitHub Flavored Markdown tables with enhanced styling:
+GitHub Flavored Markdown tables with enhanced styling:
 
 ```markdown
 | Column 1 | Column 2 | Column 3 |
@@ -121,12 +83,26 @@ Regular GitHub Flavored Markdown tables with enhanced styling:
 | Value 4  | Value 5  | Value 6  |
 ```
 
+## Code Blocks
+
+Syntax highlighting for code blocks:
+
+```markdown
+\`\`\`typescript
+interface User {
+  id: string;
+  name: string;
+}
+\`\`\`
+```
+
 ## Technical Implementation
 
 ### Dependencies
 
-The enhanced renderer uses the following additional packages:
+The enhanced renderer uses the following packages:
 
+- `react-markdown` - Markdown rendering
 - `remark-gfm` - GitHub Flavored Markdown support
 - `remark-math` - Math syntax parsing
 - `rehype-katex` - KaTeX math rendering
@@ -138,13 +114,21 @@ The enhanced renderer uses the following additional packages:
 
 The renderer includes custom React components:
 
-- `Toggle` - Handles collapsible content
-- `Callout` - Renders styled notice boxes
-- `Database` - Custom table component with enhanced styling
+- `details` - Handles collapsible content from Notion
+- `summary` - Toggle headers with custom styling
+- Enhanced table components with Vision Hub styling
 
-### Preprocessing
+### CSS Imports
 
-Content is preprocessed to convert custom syntax into HTML data attributes that are then handled by custom component renderers.
+Required CSS files are imported in `globals.css`:
+
+```css
+/* KaTeX for math equation rendering */
+@import 'katex/dist/katex.min.css';
+
+/* Highlight.js for syntax highlighting */
+@import 'highlight.js/styles/github.css';
+```
 
 ## Usage in Components
 
@@ -155,7 +139,10 @@ export function MyComponent() {
   const content = `
 # My Document
 
-{{Toggle Example|This content can be collapsed}}
+<details>
+<summary>Toggle Example</summary>
+This content can be collapsed
+</details>
 
 :::info
 This is an informational callout
@@ -193,3 +180,13 @@ Visit `/test-markdown` to see all features in action with comprehensive examples
 - KaTeX equations are rendered on the client side
 - Large tables may benefit from virtualization for very large datasets
 - Toggle states are managed in React state (not persisted across page loads)
+
+## Notion Integration
+
+When using Notion integration, toggle lists are automatically converted to the proper HTML format:
+
+1. **Notion Toggle Block** → `notion-to-md` → HTML `<details><summary>`
+2. **MarkdownRenderer** → Custom styled components
+3. **Result** → Beautiful, interactive toggle lists
+
+This ensures seamless integration between Notion's toggle functionality and the enhanced markdown renderer.
