@@ -9,8 +9,9 @@ The enhanced markdown renderer now supports:
 1. **Toggle Lists** - Collapsible content sections from Notion
 2. **Callouts** - Special notice boxes (info, warning, error, success)
 3. **Block Equations** - Mathematical formulas using KaTeX
-4. **Enhanced Tables** - GitHub Flavored Markdown tables with better styling
-5. **Syntax Highlighting** - Code blocks with language-specific highlighting
+4. **Column Layouts** - Multi-column responsive layouts
+5. **Enhanced Tables** - GitHub Flavored Markdown tables with better styling
+6. **Syntax Highlighting** - Code blocks with language-specific highlighting
 
 ## Toggle Lists (Notion Integration)
 
@@ -71,6 +72,49 @@ $$
 \int_{-\infty}^{\infty} e^{-x^2} dx = \sqrt{\pi}
 $$
 ```
+
+## Column Layouts
+
+Create responsive multi-column layouts using special syntax:
+
+### Two-Column Layout
+```markdown
+:::columns-2
+**Left Column Content**
+This is the left column with some content.
+
+---
+
+**Right Column Content**
+This is the right column with different content.
+:::
+```
+
+### Three-Column Layout
+```markdown
+:::columns-3
+**Column 1**
+First column content.
+
+---
+
+**Column 2**
+Second column content.
+
+---
+
+**Column 3**
+Third column content.
+:::
+```
+
+**Features:**
+- **Responsive Design**: Automatically stacks on mobile, side-by-side on larger screens
+- **Equal Height**: All columns maintain consistent height
+- **Full Markdown Support**: Each column supports all markdown features
+- **Flexible Content**: Any type of content can be placed in columns
+- **Multiple Column Counts**: Supports 2, 3, 4, and 5 columns
+- **Notion Compatible**: Manual markers work with Notion exports
 
 ## Enhanced Tables
 

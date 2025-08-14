@@ -73,6 +73,36 @@ export interface BlogPost {
   relatedBlogPosts?: string[]
   relatedMilestones?: string[]
   relatedAgents?: string[]
+  // New fields for files and media
+  cover_image_url?: string
+  attachments?: BlogPostAttachment[]
+  media_files?: BlogPostMedia[]
+}
+
+// New interface for blog post attachments
+export interface BlogPostAttachment {
+  id: string
+  name: string
+  url: string
+  type: 'file' | 'document' | 'spreadsheet' | 'presentation' | 'pdf' | 'archive' | 'other'
+  size?: number
+  mime_type?: string
+  created_at?: string
+}
+
+// New interface for blog post media files
+export interface BlogPostMedia {
+  id: string
+  name: string
+  url: string
+  type: 'image' | 'video' | 'audio' | 'gif' | 'file' | 'other'
+  caption?: string
+  alt_text?: string
+  width?: number
+  height?: number
+  duration?: number // for video/audio
+  mime_type?: string
+  created_at?: string
 }
 
 export interface Milestone {

@@ -34,5 +34,85 @@
     "status": "draft",
     "readTime": "10 min read",
     "content": "# Collaborative Intelligence: Humans and AI Working Together\n\nThe future of work isn't about humans versus AI—it's about humans working with AI. This exploration examines how we can design systems that leverage the strengths of both human creativity and artificial intelligence.\n\n## The Partnership Paradigm\n\n### Human Strengths\n- **Creativity and Intuition**: Generating novel ideas and solutions\n- **Contextual Understanding**: Grasping nuanced situations and emotions\n- **Ethical Judgment**: Making complex moral and ethical decisions\n- **Adaptability**: Learning and adjusting to new situations quickly\n\n### AI Strengths\n- **Data Processing**: Analyzing vast amounts of information rapidly\n- **Pattern Recognition**: Identifying trends and correlations\n- **Consistency**: Performing repetitive tasks without fatigue\n- **Scalability**: Handling multiple tasks simultaneously\n\n## Design Principles\n\n### 1. Complementary Roles\n- **Human Leadership**: Humans make final decisions and provide direction\n- **AI Assistance**: AI handles data processing and routine tasks\n- **Shared Context**: Both parties have access to relevant information\n\n### 2. Clear Communication\n- **Transparent AI**: Systems explain their reasoning and limitations\n- **Human Feedback**: Users can provide input and corrections\n- **Iterative Improvement**: Systems learn from human interactions\n\n### 3. User Control\n- **Human Oversight**: Users can override AI decisions when needed\n- **Customization**: Systems adapt to individual preferences\n- **Privacy**: Users maintain control over their data and interactions\n\n## Application Areas\n\n### Creative Work\n- **Design Collaboration**: AI suggests options, humans make final choices\n- **Content Creation**: AI assists with research and drafting\n- **Problem Solving**: Combining human insight with AI analysis\n\n### Analytical Work\n- **Data Analysis**: AI processes data, humans interpret results\n- **Research**: AI identifies patterns, humans develop hypotheses\n- **Decision Making**: AI provides options, humans evaluate trade-offs\n\n### Learning and Education\n- **Personalized Learning**: AI adapts to individual learning styles\n- **Skill Development**: AI provides feedback and guidance\n- **Knowledge Discovery**: AI helps explore new domains\n\n## Implementation Strategies\n\n### Phase 1: Assessment\n- Identify tasks suitable for human-AI collaboration\n- Evaluate current workflows and pain points\n- Assess team readiness and training needs\n\n### Phase 2: Design\n- Create interfaces that facilitate collaboration\n- Develop clear protocols for human-AI interaction\n- Establish feedback and improvement mechanisms\n\n### Phase 3: Pilot\n- Start with small, low-risk projects\n- Gather feedback and iterate\n- Scale successful approaches\n\n### Phase 4: Integration\n- Embed collaborative systems into regular workflows\n- Provide ongoing training and support\n- Monitor and optimize performance\n\n## Future Vision\n\nThe most successful organizations will be those that learn to harness the unique strengths of both humans and AI. By designing systems that facilitate true collaboration, we can achieve outcomes that neither humans nor AI could accomplish alone.\n\n*How do you envision human-AI collaboration in your field?*"
+  },
+  {
+    "id": "4",
+    "slug": "files-and-media-demo",
+    "title": "Files and Media Support Demo",
+    "excerpt": "A demonstration of the new files and media support in blog posts, showcasing attachments, media files, and cover images.",
+    "author": "Vision Hub",
+    "date": "2024-01-25",
+    "tags": ["Demo", "Files", "Media", "Features"],
+    "status": "published",
+    "readTime": "5 min read",
+    "coverImage": "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&h=400&fit=crop",
+    "attachments": [
+      {
+        "id": "1",
+        "name": "research-paper.pdf",
+        "url": "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
+        "type": "pdf",
+        "size": 1024000,
+        "mime_type": "application/pdf",
+        "created_at": "2024-01-25T10:00:00Z"
+      },
+      {
+        "id": "2",
+        "name": "presentation.pptx",
+        "url": "https://file-examples.com/storage/fe52cb0c4862dcb4a23434e/2017/10/file-sample_150kB.pptx",
+        "type": "presentation",
+        "size": 153600,
+        "mime_type": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+        "created_at": "2024-01-25T10:00:00Z"
+      },
+      {
+        "id": "3",
+        "name": "data-analysis.xlsx",
+        "url": "https://file-examples.com/storage/fe52cb0c4862dcb4a23434e/2017/10/file-sample_100kB.xlsx",
+        "type": "spreadsheet",
+        "size": 102400,
+        "mime_type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "created_at": "2024-01-25T10:00:00Z"
+      }
+    ],
+    "media_files": [
+      {
+        "id": "1",
+        "name": "demo-video.mp4",
+        "url": "https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_1mb.mp4",
+        "type": "video",
+        "caption": "A demonstration of the new features",
+        "alt_text": "Demo video showing file and media support",
+        "width": 1280,
+        "height": 720,
+        "duration": 120,
+        "mime_type": "video/mp4",
+        "created_at": "2024-01-25T10:00:00Z"
+      },
+      {
+        "id": "2",
+        "name": "infographic.png",
+        "url": "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&h=300&fit=crop",
+        "type": "image",
+        "caption": "Key findings summary visualization",
+        "alt_text": "Infographic showing research findings",
+        "width": 400,
+        "height": 300,
+        "mime_type": "image/png",
+        "created_at": "2024-01-25T10:00:00Z"
+      },
+      {
+        "id": "3",
+        "name": "podcast-episode.mp3",
+        "url": "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav",
+        "type": "audio",
+        "caption": "Audio discussion on the topic",
+        "alt_text": "Podcast episode about file and media support",
+        "duration": 1800,
+        "mime_type": "audio/wav",
+        "created_at": "2024-01-25T10:00:00Z"
+      }
+    ],
+    "content": "# Files and Media Support Demo\n\nThis post demonstrates the new files and media support in blog posts. You can now attach files, embed media, and display cover images.\n\n## File References\n\nYou can reference files in your markdown content using the `file:` prefix:\n\n- [file:research-paper.pdf](file:research-paper.pdf) - A research paper on AI ethics\n- [file:presentation.pptx](file:presentation.pptx) - Slides from our recent conference\n- [file:data-analysis.xlsx](file:data-analysis.xlsx) - Spreadsheet with our findings\n\n## Media References\n\nYou can also reference media files using the `media:` prefix:\n\n- [media:demo-video.mp4](media:demo-video.mp4) - A demonstration video\n- [media:infographic.png](media:infographic.png) - An infographic explaining the concepts\n- [media:podcast-episode.mp3](media:podcast-episode.mp3) - Audio discussion on the topic\n\n## How It Works\n\nWhen you use these special link formats in your markdown content, the system automatically:\n\n1. **Recognizes** the file or media reference\n2. **Looks up** the corresponding attachment or media file\n3. **Renders** an interactive card with download/view options\n4. **Displays** appropriate icons and metadata\n\n## Benefits\n\n- **Seamless Integration**: Files and media are part of your content\n- **Rich Metadata**: File types, sizes, and descriptions are displayed\n- **Easy Access**: Users can download or view files directly\n- **Visual Appeal**: Icons and badges make content more engaging\n- **Inline Previews**: Media files can be previewed directly in the post\n\n## Technical Details\n\nThis feature supports:\n\n- **File Types**: Documents, spreadsheets, presentations, PDFs, archives\n- **Media Types**: Images, videos, audio, GIFs\n- **Metadata**: File sizes, dimensions, durations, captions\n- **Actions**: Download, view, external links\n- **Previews**: Inline media playback and image display\n\n*This demo showcases the power of integrating files and media directly into your blog content!*"
   }
 ] 

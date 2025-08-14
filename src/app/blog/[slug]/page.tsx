@@ -5,8 +5,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
-import { getBlogPostBySlug } from "@/lib/notion"
+import { getBlogPostBySlug, getBlogPostSlugs } from "@/lib/notion"
 import { MarkdownRenderer } from "@/components/MarkdownRenderer"
+import { MediaRenderer } from "@/components/MediaRenderer"
 import { WidescreenToggle } from "@/components/WidescreenToggle"
 import RelatedContent from "@/components/RelatedContent"
 import { cn, formatDate, formatDateHeader, formatDateFromISO } from "@/lib/utils"
@@ -18,6 +19,21 @@ interface BlogPostPageProps {
   }>
 }
 
+// Generate static params for all blog post slugs
+export async function generateStaticParams() {
+  try {
+    const slugs = await getBlogPostSlugs()
+    console.log('Generating static params for blog posts:', slugs)
+    return slugs.map((slug) => ({
+      slug: slug,
+    }))
+  } catch (error) {
+    console.error('Error generating static params:', error)
+    // The getBlogPostSlugs function already handles fallback to local data
+    return []
+  }
+}
+
 export default async function BlogPostPage({ params }: BlogPostPageProps) {
   const { slug } = await params
   const post = await getBlogPostBySlug(slug)
@@ -25,15 +41,6 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
   if (!post) {
     notFound()
   }
-
-  // Debug logging
-  console.log('Blog post data:', {
-    title: post.title,
-    relatedProjects: post.relatedProjects,
-    relatedBlogPosts: post.relatedBlogPosts,
-    relatedMilestones: post.relatedMilestones,
-    relatedAgents: post.relatedAgents
-  })
 
   return (
     <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8">
@@ -107,12 +114,28 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
           )}
         </div>
 
+        {/* Cover Image */}
+        {post.cover_image_url && (
+          <div className="mb-8">
+            <img
+              src={post.cover_image_url}
+              alt={`Cover image for ${post.title}`}
+              className="w-full h-64 md:h-80 lg:h-96 object-cover rounded-lg border border-vision-border shadow-sm"
+              loading="lazy"
+            />
+          </div>
+        )}
+
         {/* Blog Post Content */}
         <Card>
           <CardContent className="pt-6">
             {/* Content */}
             {post.content ? (
-              <MarkdownRenderer content={post.content} />
+              <MarkdownRenderer 
+                content={post.content} 
+                attachments={post.attachments}
+                mediaFiles={post.media_files}
+              />
             ) : (
               <div className="text-center py-12">
                 <p className="text-vision-charcoal/60">
@@ -125,6 +148,13 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
             )}
           </CardContent>
         </Card>
+
+        {/* Files and Media */}
+        <MediaRenderer
+          attachments={post.attachments}
+          mediaFiles={post.media_files}
+          className="mt-8"
+        />
 
         {/* Related Content */}
         <RelatedContent

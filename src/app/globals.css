@@ -98,6 +98,18 @@ details details {
   .vision-border {
     @apply border-vision-navy/20;
   }
+  
+  /* Ensure 5-column layouts work properly */
+  .columns-5 {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+  
+  /* Responsive 5-column layout */
+  @media (min-width: 1536px) {
+    .columns-5 {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
+  }
 }
 
 /* Widescreen mode styles */
@@ -117,18 +129,86 @@ details details {
     max-width: 98vw !important;
   }
   
-  /* Maintain two-column layout in widescreen mode */
-  html.widescreen .grid-cols-1.lg\:grid-cols-3 {
-    grid-template-columns: 2fr 1fr !important;
+  /* Preserve column layouts in widescreen mode - don't force 2-column */
+  /* Remove the problematic rule that was forcing all layouts to 2 columns */
+  
+  /* Fix media grid width issues and ensure proper widescreen behavior */
+  /* Normal mode: maintain consistent card widths with 3 columns default */
+  .media-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
   }
   
-  /* Ensure columns maintain their relative widths */
-  html.widescreen .lg\:col-span-2 {
-    grid-column: 1 / 2 !important;
+  /* Responsive behavior for smaller screens */
+  @media (max-width: 1024px) {
+    .media-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
   }
   
-  html.widescreen .lg\:col-span-1 {
-    grid-column: 2 / 3 !important;
+  @media (max-width: 640px) {
+    .media-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+  
+  /* Ensure media cards have consistent sizing */
+  .media-grid .card {
+    min-width: 0; /* Allow cards to shrink to fit the grid */
+    max-width: none; /* Remove max-width constraint for 3-column layout */
+  }
+  
+  /* Widescreen mode: fit more cards per row while maintaining reasonable card width */
+  html.widescreen .media-grid {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)) !important;
+    justify-content: start !important;
+    gap: 1rem !important;
+  }
+  
+  /* Ensure media cards maintain reasonable width in widescreen mode */
+  html.widescreen .media-grid .card {
+    min-width: 280px !important;
+    max-width: 350px !important;
+  }
+  
+  /* Ensure attachments grid works properly */
+  html.widescreen .attachments-grid {
+    gap: 1rem !important;
+  }
+  
+  /* Preserve column layouts in widescreen mode */
+  html.widescreen .columns-container {
+    /* Preserve the intended column count */
+    grid-template-columns: inherit !important;
+  }
+  
+  /* Specific rules for different column counts in widescreen mode */
+  html.widescreen .columns-2 {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  
+  html.widescreen .columns-3 {
+    grid-template-columns: repeat(3, 1fr) !important;
+  }
+  
+  html.widescreen .columns-4 {
+    grid-template-columns: repeat(4, 1fr) !important;
+  }
+  
+  html.widescreen .columns-5 {
+    grid-template-columns: repeat(5, 1fr) !important;
+  }
+  
+  /* Ensure proper spacing and distribution in widescreen mode */
+  html.widescreen .columns-container {
+    gap: 2rem !important;
+    margin-bottom: 2rem !important;
+  }
+  
+  html.widescreen .column-content {
+    /* Ensure columns have proper spacing and don't get too narrow */
+    min-width: 0;
+    word-wrap: break-word;
   }
   
   /* Improve spacing in widescreen mode */

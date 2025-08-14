@@ -53,6 +53,10 @@ interface NotionDatabaseEntry {
     blogPosts?: { relation: Array<{ id: string }> }
     milestones?: { relation: Array<{ id: string }> }
     agents?: { relation: Array<{ id: string }> }
+    // New properties for files and media
+    coverImage?: { files: Array<{ file?: { url: string }; external?: { url: string } }> }
+    attachments?: { files: Array<{ name: string; file?: { url: string }; external?: { url: string }; type?: string; size?: number }> }
+    mediaFiles?: { files: Array<{ name: string; file?: { url: string }; external?: { url: string }; type?: string; caption?: string; alt_text?: string; width?: number; height?: number; duration?: number }> }
   }
 }
 
@@ -127,6 +131,31 @@ function getTagsFromProperty(property: any): string[] {
   return property.multi_select.map((tag: any) => tag.name)
 }
 
+// Helper function to get files and media from Notion properties
+function getFilesFromProperty(property: any): any[] {
+  if (!property || !property.files) return []
+  return property.files.map((file: any) => ({
+    name: file.name || 'Untitled',
+    url: file.file?.url || file.external?.url || '',
+    type: file.type || 'other',
+    size: file.size,
+    mime_type: file.mime_type,
+    caption: file.caption,
+    alt_text: file.alt_text,
+    width: file.width,
+    height: file.height,
+    duration: file.duration,
+    created_at: file.created_time
+  }))
+}
+
+// Helper function to get cover image URL from Notion properties
+function getCoverImageUrl(property: any): string {
+  if (!property || !property.files || property.files.length === 0) return ''
+  const file = property.files[0]
+  return file.file?.url || file.external?.url || ''
+}
+
 // Helper to safely get a property by trying multiple possible names
 function getProperty(properties: any, names: string[]): any {
   if (!properties) return undefined
@@ -138,15 +167,12 @@ function getProperty(properties: any, names: string[]): any {
 
 // Helper function to fetch related content from relation properties
 async function fetchRelatedContent(relationProperty: any): Promise<string[]> {
-  console.log('  - Raw relation property:', relationProperty)
   
   if (!relationProperty?.relation) {
-    console.log('  - No relation property found, returning empty array')
     return []
   }
   
   const relationIds = relationProperty.relation.map((item: any) => item.id) as string[]
-  console.log('  - Relation IDs:', relationIds)
   
   // Fetch related pages to get their slugs
   const relatedPages = await Promise.all(
@@ -191,10 +217,14 @@ function convertLocalPostToBlogPost(localPost: any): BlogPost {
     notion_url: localPost.notionUrl,
     created_at: localPost.date,
     updated_at: localPost.date,
-          relatedProjects: [],
-      relatedBlogPosts: [],
-      relatedMilestones: [],
-      relatedAgents: []
+    // New fields for files and media from local data
+    cover_image_url: localPost.coverImage || '',
+    attachments: localPost.attachments || [],
+    media_files: localPost.media_files || [],
+    relatedProjects: [],
+    relatedBlogPosts: [],
+    relatedMilestones: [],
+    relatedAgents: []
   }
 }
 
@@ -253,6 +283,29 @@ export async function getBlogPosts(): Promise<BlogPost[]> {
           notion_url: page.url,
           created_at: properties.date?.date?.start || new Date().toISOString(),
           updated_at: page.last_edited_time,
+          // New fields for files and media
+          cover_image_url: getCoverImageUrl(properties.coverImage),
+          attachments: getFilesFromProperty(properties.attachments).map(file => ({
+            id: file.url, // Use URL as ID for now
+            name: file.name,
+            url: file.url,
+            type: file.type as any,
+            size: file.size,
+            mime_type: file.mime_type,
+            created_at: file.created_at
+          })),
+          media_files: getFilesFromProperty(properties.mediaFiles).map(file => ({
+            id: file.url, // Use URL as ID for now
+            name: file.name,
+            url: file.url,
+            type: file.type as any,
+            caption: file.caption,
+            alt_text: file.alt_text,
+            width: file.width,
+            height: file.height,
+            duration: file.duration,
+            created_at: file.created_at
+          }))
         }
       }).filter(Boolean) as BlogPost[]
 
@@ -282,11 +335,44 @@ export async function getBlogPosts(): Promise<BlogPost[]> {
 
   // Fallback to local data
   console.warn('Using fallback blog post data')
-  return postsData.map(convertLocalPostToBlogPost)
+  const localPosts = postsData.map(convertLocalPostToBlogPost)
+  console.log('Local posts loaded:', localPosts.map(p => ({ slug: p.slug, published: p.published, attachments: p.attachments?.length || 0, media_files: p.media_files?.length || 0 })))
+  
+  // Ensure demo post is always included
+  const demoPost = localPosts.find(p => p.slug === 'files-and-media-demo')
+  if (demoPost) {
+    console.log('Demo post included in blog listing')
+  } else {
+    console.warn('Demo post not found in local posts')
+  }
+  
+  return localPosts
 }
 
 // Fetch a single blog post by slug
 export async function getBlogPostBySlug(slug: string): Promise<BlogPost | null> {
+  // Special case: Always load demo post from local data
+  if (slug === 'files-and-media-demo') {
+    console.log('Loading demo post from local data')
+    const demoPost = postsData.find((post: any) => post.slug === 'files-and-media-demo')
+    if (demoPost) {
+      const convertedPost = convertLocalPostToBlogPost(demoPost)
+      console.log('Demo post loaded:', {
+        slug: convertedPost.slug,
+        cover_image_url: convertedPost.cover_image_url,
+        attachments: convertedPost.attachments?.length || 0,
+        media_files: convertedPost.media_files?.length || 0
+      })
+      return {
+        ...convertedPost,
+        relatedProjects: [],
+        relatedBlogPosts: [],
+        relatedMilestones: [],
+        relatedAgents: []
+      }
+    }
+  }
+
   try {
     // Try Notion first if configured
     if (process.env.NOTION_API_KEY && process.env.NOTION_BLOG_DB_ID) {
@@ -369,6 +455,29 @@ export async function getBlogPostBySlug(slug: string): Promise<BlogPost | null> 
         notion_url: page.url,
         created_at: properties.date?.date?.start || new Date().toISOString(),
         updated_at: page.last_edited_time,
+        // New fields for files and media
+        cover_image_url: getCoverImageUrl(properties.coverImage),
+        attachments: getFilesFromProperty(properties.attachments).map(file => ({
+          id: file.url, // Use URL as ID for now
+          name: file.name,
+          url: file.url,
+          type: file.type as any,
+          size: file.size,
+          mime_type: file.mime_type,
+          created_at: file.created_at
+        })),
+        media_files: getFilesFromProperty(properties.mediaFiles).map(file => ({
+          id: file.url, // Use URL as ID for now
+          name: file.name,
+          url: file.url,
+          type: file.type as any,
+          caption: file.caption,
+          alt_text: file.alt_text,
+          width: file.width,
+          height: file.height,
+          duration: file.duration,
+          created_at: file.created_at
+        })),
         relatedProjects,
         relatedBlogPosts,
         relatedMilestones,
@@ -398,8 +507,18 @@ export async function getBlogPostBySlug(slug: string): Promise<BlogPost | null> 
 
   // Fallback to local data
   const fallbackPost = postsData.find((post: any) => post.slug === slug)
+  console.log('Looking for post with slug:', slug)
+  console.log('Available posts:', postsData.map((p: any) => ({ slug: p.slug, status: p.status })))
+  console.log('Found fallback post:', fallbackPost)
+  
   if (fallbackPost) {
     const convertedPost = convertLocalPostToBlogPost(fallbackPost)
+    console.log('Converted post:', {
+      slug: convertedPost.slug,
+      cover_image_url: convertedPost.cover_image_url,
+      attachments: convertedPost.attachments?.length || 0,
+      media_files: convertedPost.media_files?.length || 0
+    })
     // Add related content for local data
     return {
       ...convertedPost,
@@ -416,10 +535,24 @@ export async function getBlogPostBySlug(slug: string): Promise<BlogPost | null> 
 export async function getBlogPostSlugs(): Promise<string[]> {
   try {
     const posts = await getBlogPosts()
-    return posts.map(post => post.slug)
+    const slugs = posts.map(post => post.slug)
+    
+    // Ensure demo post slug is always included
+    if (!slugs.includes('files-and-media-demo')) {
+      console.log('Adding demo post slug to static generation')
+      slugs.push('files-and-media-demo')
+    }
+    
+    return slugs
   } catch (error) {
     console.error('Error fetching blog post slugs:', error)
-    return postsData.map((post: any) => post.slug)
+    // Fallback to local data and ensure demo post is included
+    const localSlugs = postsData.map((post: any) => post.slug)
+    if (!localSlugs.includes('files-and-media-demo')) {
+      console.log('Adding demo post slug to fallback slugs')
+      localSlugs.push('files-and-media-demo')
+    }
+    return localSlugs
   }
 }
 
