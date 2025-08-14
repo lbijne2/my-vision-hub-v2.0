@@ -45,7 +45,7 @@ export default function BlogPage() {
           </h1>
           <p className="text-xl text-vision-charcoal/70 max-w-3xl mx-auto">
             Thoughts, insights, and explorations at the intersection of technology, 
-            medicine, design, and human potential.
+            medicine, our future, and human potential.
           </p>
         </div>
 
