@@ -69,7 +69,7 @@ export default function ProjectsPage() {
             </h1>
             <p className="text-xl text-vision-charcoal/70 max-w-3xl mx-auto">
               Explore ongoing work, research, and explorations at the intersection 
-              of technology, medicine, design, and human potential.
+              of technology, medicine, our future, and human potential.
             </p>
           </div>
 
@@ -110,7 +110,7 @@ export default function ProjectsPage() {
           </h1>
           <p className="text-xl text-vision-charcoal/70 max-w-3xl mx-auto">
             Explore ongoing work, research, and explorations at the intersection 
-            of technology, medicine, design, and human potential.
+            of technology, medicine, our future, and human potential.
           </p>
         </div>
 
