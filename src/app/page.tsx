@@ -18,7 +18,7 @@ export default function HomePage() {
             <p className="text-xl text-vision-charcoal/80 max-w-3xl mx-auto leading-relaxed">
               A personal and evolving digital platform that brings together creative, scientific, 
               and visionary work across multiple domains. Explore projects at the intersection 
-              of medicine, AI, design, ethics, and the future.
+              of medicine, AI, technology, ethics, and the future.
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
