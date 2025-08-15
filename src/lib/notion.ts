@@ -571,8 +571,8 @@ export async function getAllProjects(): Promise<Project[]> {
         },
         sorts: [
           {
-            property: 'title',
-            direction: 'ascending',
+            property: 'date',
+            direction: 'descending',
           },
         ],
       })

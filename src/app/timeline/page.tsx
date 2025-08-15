@@ -59,9 +59,8 @@ export default function TimelinePage() {
         try {
           const statusResponse = await fetch('/api/notion-status')
           notionStatus = await statusResponse.json()
-          console.log('Notion configuration status:', notionStatus)
         } catch (error) {
-          console.log('Could not check Notion status:', error)
+          // Silently handle notion status check failure
         }
         
         // Fetch timeline entries from API
@@ -94,40 +93,6 @@ export default function TimelinePage() {
         
         const source = determineDataSource(entries)
         setDataSource(source)
-        
-        // Log data source information
-        const milestoneEntries = entries.filter((entry: TimelineEntry) => entry.type === 'milestone')
-        const projectEntries = entries.filter((entry: TimelineEntry) => entry.type === 'project')
-        const agentEntries = entries.filter((entry: TimelineEntry) => entry.type === 'agent')
-        const postEntries = entries.filter((entry: TimelineEntry) => entry.type === 'post')
-        
-        console.log(`📊 Timeline loaded with ${entries.length} total entries:`)
-        console.log(`  - Milestones: ${milestoneEntries.length} entries`)
-        console.log(`  - Projects: ${projectEntries.length} entries`)
-        console.log(`  - Agents: ${agentEntries.length} entries`)
-        console.log(`  - Posts: ${postEntries.length} entries`)
-        console.log(`  - Data source: ${source === 'notion' ? '✅ Notion' : source === 'fallback' ? '📝 Local fallback' : '🔄 Mixed (Notion + Local)'}`)
-        console.log(`  - Content filter: 📝 Only published/visible content is displayed`)
-        
-        // Log future/past grouping information
-        const now = new Date()
-        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-        const futureCount = entries.filter((entry: TimelineEntry) => new Date(entry.date) >= today).length
-        const pastCount = entries.filter((entry: TimelineEntry) => new Date(entry.date) < today).length
-        console.log(`  - Timeline organization: 🚀 ${futureCount} upcoming, 📚 ${pastCount} past events`)
-        
-        if (notionStatus) {
-          console.log(`  - Notion config: ${notionStatus.fullyConfigured ? '✅ Fully configured' : '⚠️ Partially configured'}`)
-          if (!notionStatus.fullyConfigured) {
-            console.log(`    Missing: ${[
-              !notionStatus.notionApiKeyConfigured && 'API Key',
-              !notionStatus.notionMilestonesDbIdConfigured && 'Milestones DB',
-              !notionStatus.notionProjectsDbIdConfigured && 'Projects DB',
-              !notionStatus.notionBlogDbIdConfigured && 'Blog DB',
-              !notionStatus.notionAgentsDbIdConfigured && 'Agents DB'
-            ].filter(Boolean).join(', ')}`)
-          }
-        }
         
       } catch (err) {
         console.error('Error loading timeline entries:', err)
@@ -246,41 +211,7 @@ export default function TimelinePage() {
             Explore the journey of ideas, projects, and milestones that shape the Vision Hub ecosystem.
           </p>
           
-          {/* Published Content Note */}
-          <div className="text-center mb-4">
-            <p className="text-sm text-vision-charcoal/60">
-              📝 Only published content is displayed in the timeline
-            </p>
-          </div>
-          
-          {/* Data Source Indicator */}
-          {dataSource && (
-            <div className="flex justify-center items-center gap-2 text-sm">
-              <span className="text-vision-charcoal/60">Data source:</span>
-              {dataSource === 'notion' ? (
-                <Badge variant="secondary" className="bg-pastel-green text-vision-charcoal border-0">
-                  ✅ Notion Integration
-                </Badge>
-              ) : dataSource === 'fallback' ? (
-                <Badge variant="secondary" className="bg-pastel-rose text-vision-charcoal border-0">
-                  📝 Local Data
-                </Badge>
-              ) : (
-                <Badge variant="secondary" className="bg-pastel-ochre text-vision-charcoal border-0">
-                  🔄 Mixed Sources
-                </Badge>
-              )}
-              {dataSource === 'fallback' && (
-                <Link 
-                  href="/docs/setup/notion-integration-setup.md" 
-                  className="text-vision-ochre hover:text-vision-ochre/80 underline text-xs"
-                  target="_blank"
-                >
-                  Setup Notion Integration
-                </Link>
-              )}
-            </div>
-          )}
+
         </div>
 
         {/* Filter Controls */}
