@@ -1259,8 +1259,8 @@ export async function getAllAgentsFromNotion(): Promise<Agent[]> {
         },
         sorts: [
           {
-            property: 'name',
-            direction: 'ascending',
+            property: 'createdAt',
+            direction: 'descending',
           },
         ],
       })
