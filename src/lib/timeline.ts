@@ -1,7 +1,7 @@
 import projects from '@/data/projects.json'
 import agents from '@/data/agents.json'
 import posts from '@/data/posts.json'
-import { getMilestonesFromNotion } from './notion'
+import { getMilestonesFromNotion, getAllProjects, getBlogPosts, getAllAgentsFromNotion } from './notion'
 
 export interface TimelineEntry {
   id: string
@@ -22,8 +22,32 @@ export interface LinkedItem {
 }
 
 // Data processing functions
-const processProjects = (): TimelineEntry[] => {
-  return projects.map(project => ({
+const processProjects = async (): Promise<TimelineEntry[]> => {
+  try {
+    // Try to get projects from Notion first
+    const notionProjects = await getAllProjects()
+    if (notionProjects.length > 0) {
+      console.log(`✅ Using ${notionProjects.length} projects from Notion`)
+      return notionProjects.map(project => ({
+        id: project.id,
+        title: project.title,
+        slug: project.slug,
+        type: 'project' as const,
+        date: project.created_at || project.updated_at || '',
+        description: project.description || project.subtitle,
+        icon: "📁",
+        color: "bg-pastel-green"
+      }))
+    }
+  } catch (error) {
+    console.log('Could not fetch projects from Notion, using local fallback:', error)
+  }
+  
+  // Fallback to local data - filter by visible status
+  console.log('📝 Using local fallback project data')
+  const visibleProjects = projects.filter(project => project.visible !== false)
+  console.log(`📝 Filtered to ${visibleProjects.length} visible projects from ${projects.length} total`)
+  return visibleProjects.map(project => ({
     id: `project-${project.id}`,
     title: project.title,
     slug: project.slug,
@@ -35,7 +59,30 @@ const processProjects = (): TimelineEntry[] => {
   }))
 }
 
-const processAgents = (): TimelineEntry[] => {
+const processAgents = async (): Promise<TimelineEntry[]> => {
+  try {
+    // Try to get agents from Notion first
+    const notionAgents = await getAllAgentsFromNotion()
+    if (notionAgents.length > 0) {
+      console.log(`✅ Using ${notionAgents.length} agents from Notion`)
+      return notionAgents.map(agent => ({
+        id: agent.id,
+        title: agent.name,
+        slug: agent.slug,
+        type: 'agent' as const,
+        date: agent.created_at || agent.updated_at || '',
+        description: agent.description,
+        icon: "🧠",
+        color: "bg-pastel-purple"
+      }))
+    }
+  } catch (error) {
+    console.log('Could not fetch agents from Notion, using local fallback:', error)
+  }
+  
+  // Fallback to local data - agents don't have published field, so show all
+  console.log('📝 Using local fallback agent data')
+  console.log(`📝 Showing ${agents.length} agents from local data`)
   return agents.map(agent => ({
     id: `agent-${agent.id}`,
     title: agent.name,
@@ -48,8 +95,32 @@ const processAgents = (): TimelineEntry[] => {
   }))
 }
 
-const processPosts = (): TimelineEntry[] => {
-  return posts.map(post => ({
+const processPosts = async (): Promise<TimelineEntry[]> => {
+  try {
+    // Try to get blog posts from Notion first
+    const notionPosts = await getBlogPosts()
+    if (notionPosts.length > 0) {
+      console.log(`✅ Using ${notionPosts.length} blog posts from Notion`)
+      return notionPosts.map(post => ({
+        id: post.id,
+        title: post.title,
+        slug: post.slug,
+        type: 'post' as const,
+        date: post.created_at || post.updated_at || '',
+        description: post.excerpt,
+        icon: "✍️",
+        color: "bg-pastel-rose"
+      }))
+    }
+  } catch (error) {
+    console.log('Could not fetch blog posts from Notion, using local fallback:', error)
+  }
+  
+  // Fallback to local data - filter by published status
+  console.log('📝 Using local fallback blog post data')
+  const publishedPosts = posts.filter(post => post.status === 'published')
+  console.log(`📝 Filtered to ${publishedPosts.length} published posts from ${posts.length} total`)
+  return publishedPosts.map(post => ({
     id: `post-${post.id}`,
     title: post.title,
     slug: post.slug,
@@ -134,9 +205,9 @@ const processMilestones = async (): Promise<TimelineEntry[]> => {
 }
 
 export const getAllTimelineEntries = async (): Promise<TimelineEntry[]> => {
-  const processedProjects = processProjects()
-  const processedAgents = processAgents()
-  const processedPosts = processPosts()
+  const processedProjects = await processProjects()
+  const processedAgents = await processAgents()
+  const processedPosts = await processPosts()
   const processedMilestones = await processMilestones()
   
   return [...processedProjects, ...processedAgents, ...processedPosts, ...processedMilestones]

@@ -563,6 +563,12 @@ export async function getAllProjects(): Promise<Project[]> {
     if (process.env.NOTION_API_KEY && process.env.NOTION_PROJECT_DB_ID) {
       const response = await notion.databases.query({
         database_id: process.env.NOTION_PROJECT_DB_ID,
+        filter: {
+          property: 'published',
+          checkbox: {
+            equals: true,
+          },
+        },
         sorts: [
           {
             property: 'title',
@@ -581,54 +587,51 @@ export async function getAllProjects(): Promise<Project[]> {
 
         // Attempt to resolve parent project relation if present
         let parentProject: { title: string; slug: string } | undefined
-        const parentProp = getProperty(properties, ['Parent Project', 'Parent project', 'parentProject', 'ParentProject', 'parent project'])
-        if (parentProp?.relation?.length) {
-          const parentId = parentProp.relation[0]?.id as string
-          if (parentId) {
-            const parentSlug = await getSlugForPageId(parentId)
-            try {
-              const parentPage: any = await notion.pages.retrieve({ page_id: parentId })
-              const parentTitle = getTextFromProperty(getProperty(parentPage?.properties, ['title', 'Title', 'Name'])) || ''
-              parentProject = { title: parentTitle || parentSlug, slug: parentSlug }
-            } catch {
-              parentProject = { title: parentSlug, slug: parentSlug }
+        let childProjects: Array<{ title: string; slug: string }> | undefined
+        
+        // Check if parent/child project properties exist and use the correct property names
+        const availableProperties = Object.keys(properties)
+        const hasParentProperty = availableProperties.includes('parentProject')
+        const hasChildProperty = availableProperties.includes('childProjects')
+        
+        // Log available properties for debugging (only once per project to avoid spam)
+        if (availableProperties.length > 0) {
+          console.log(`Available properties for project "${getTextFromProperty(properties.title)}":`, availableProperties)
+        }
+        
+        if (hasParentProperty) {
+          // Use the exact property name from your Notion database
+          const parentProp = properties.parentProject
+          if (parentProp?.relation?.length) {
+            const parentId = parentProp.relation[0]?.id as string
+            if (parentId) {
+              const parentSlug = await getSlugForPageId(parentId)
+              try {
+                const parentPage: any = await notion.pages.retrieve({ page_id: parentId })
+                const parentTitle = getTextFromProperty(getProperty(parentPage?.properties, ['title', 'Title', 'Name'])) || ''
+                parentProject = { title: parentTitle || parentSlug, slug: parentSlug }
+              } catch {
+                parentProject = { title: parentSlug, slug: parentSlug }
+              }
             }
           }
         }
 
-        // Query child projects where Parent Project points to this page
-        let childProjects: Array<{ title: string; slug: string }> | undefined
-        try {
-          const parentPropertyCandidates = ['Parent Project', 'Parent project', 'parentProject', 'ParentProject', 'parent project']
-          let childrenResp: any = null
-          for (const propName of parentPropertyCandidates) {
-            try {
-              childrenResp = await notion.databases.query({
-                database_id: process.env.NOTION_PROJECT_DB_ID!,
-                filter: {
-                  property: propName,
-                  relation: { contains: page.id },
-                },
-                sorts: [{ property: 'title', direction: 'ascending' }],
-              })
-              if (childrenResp?.results?.length) {
-                console.log(`Found ${childrenResp.results.length} child projects for ${getTextFromProperty(properties.title)}`)
-                break
-              }
-            } catch (e) {
-              // try next candidate
-            }
-          }
-          if (childrenResp?.results?.length) {
-            childProjects = await Promise.all(childrenResp.results.map(async (child: any) => {
-              const childProps = child.properties
-              const childSlug = getTextFromProperty(getProperty(childProps, ['slug', 'Slug'])) || (await getSlugForPageId(child.id))
-              const childTitle = getTextFromProperty(getProperty(childProps, ['title', 'Title', 'Name']))
-              return { title: childTitle || childSlug, slug: childSlug }
+        if (hasChildProperty) {
+          // Use the exact property name from your Notion database
+          const childProp = properties.childProjects
+          if (childProp?.relation?.length) {
+            childProjects = await Promise.all(childProp.relation.map(async (child: any) => {
+              const childSlug = await getSlugForPageId(child.id)
+              const childTitle = getTextFromProperty(getProperty(child.properties, ['title', 'Title', 'Name'])) || childSlug
+              return { title: childTitle, slug: childSlug }
             }))
+            console.log(`Found ${childProjects.length} child projects for ${getTextFromProperty(properties.title)}`)
           }
-        } catch (err) {
-          console.warn('Error fetching child projects for', getTextFromProperty(properties.title), err)
+        }
+        
+        if (!hasParentProperty && !hasChildProperty) {
+          console.log(`No parent/child project properties found for ${getTextFromProperty(properties.title)}. Available properties:`, availableProperties)
         }
 
         return {
@@ -756,114 +759,95 @@ export async function getProjectBySlug(slug: string): Promise<Project | null> {
       let relatedMilestones = await fetchRelatedContent(properties.milestones)
       let relatedAgents = await fetchRelatedContent(properties.agents)
 
-      // Resolve parent project relation
+            // Resolve parent project relation
       let parentProject: { title: string; slug: string } | undefined
-      const parentProp = getProperty(properties, ['Parent Project', 'Parent project', 'parentProject', 'ParentProject', 'parent project'])
-      if (parentProp?.relation?.length) {
-        const parentId = parentProp.relation[0]?.id as string
-        if (parentId) {
-          const parentSlug = await getSlugForPageId(parentId)
-          try {
-            const parentPage: any = await notion.pages.retrieve({ page_id: parentId })
-            const parentTitle = getTextFromProperty(getProperty(parentPage?.properties, ['title', 'Title', 'Name'])) || ''
-            parentProject = { title: parentTitle || parentSlug, slug: parentSlug }
-          } catch {
-            parentProject = { title: parentSlug, slug: parentSlug }
+      let childProjects: Array<{ title: string; slug: string }> | undefined
+      let siblingProjects: Array<{ title: string; slug: string }> | undefined
+      
+      // Check if parent/child project properties exist and use the correct property names
+      const availableProperties = Object.keys(properties)
+      const hasParentProperty = availableProperties.includes('parentProject')
+      const hasChildProperty = availableProperties.includes('childProjects')
+      
+      if (hasParentProperty) {
+        // Use the exact property name from your Notion database
+        const parentProp = properties.parentProject
+        if (parentProp?.relation?.length) {
+          const parentId = parentProp.relation[0]?.id as string
+          if (parentId) {
+            const parentSlug = await getSlugForPageId(parentId)
+            try {
+              const parentPage: any = await notion.pages.retrieve({ page_id: parentId })
+              const parentTitle = getTextFromProperty(getProperty(parentPage?.properties, ['title', 'Title', 'Name'])) || ''
+              parentProject = { title: parentTitle || parentSlug, slug: parentSlug }
+            } catch {
+              parentProject = { title: parentSlug, slug: parentSlug }
+            }
           }
         }
       }
 
-      // Query child projects where Parent Project points to this page
-      let childProjects: Array<{ title: string; slug: string }> | undefined
-      // Query sibling projects if this project has a parent (excluding current project)
-      let siblingProjects: Array<{ title: string; slug: string }> | undefined
-      
-      try {
-        const parentPropertyCandidates = ['Parent Project', 'Parent project', 'parentProject', 'ParentProject', 'parent project']
-        let childrenResp: any = null
-        for (const propName of parentPropertyCandidates) {
-          try {
-            childrenResp = await notion.databases.query({
+      if (hasChildProperty) {
+        // Use the exact property name from your Notion database
+        const childProp = properties.childProjects
+        if (childProp?.relation?.length) {
+          childProjects = await Promise.all(childProp.relation.map(async (child: any) => {
+            const childSlug = await getSlugForPageId(child.id)
+            const childTitle = getTextFromProperty(getProperty(child.properties, ['title', 'Title', 'Name'])) || childSlug
+            return { title: childTitle, slug: childSlug }
+          }))
+          console.log(`Found ${childProjects.length} child projects for ${slug}`)
+        }
+      }
+
+      // If this project has a parent, fetch siblings (other children of the same parent)
+      if (parentProject && hasChildProperty) {
+        try {
+          // Find the parent page ID first
+          const parentPageResp = await notion.databases.query({
+            database_id: process.env.NOTION_PROJECT_DB_ID!,
+            filter: {
+              property: 'slug',
+              rich_text: { equals: parentProject.slug },
+            },
+          })
+          
+          if (parentPageResp?.results?.length) {
+            const parentPageId = parentPageResp.results[0].id
+            
+            // Query all projects that have this parent using the correct property name
+            const siblingsResp = await notion.databases.query({
               database_id: process.env.NOTION_PROJECT_DB_ID!,
               filter: {
-                property: propName,
-                relation: { contains: page.id },
+                property: 'parentProject',
+                relation: { contains: parentPageId },
               },
               sorts: [{ property: 'title', direction: 'ascending' }],
             })
-            if (childrenResp?.results?.length) {
-              console.log(`Found ${childrenResp.results.length} child projects using relation property: ${propName}`)
-              break
-            }
-          } catch (e) {
-            // try next candidate
-          }
-        }
-        if (childrenResp?.results?.length) {
-          childProjects = await Promise.all(childrenResp.results.map(async (child: any) => {
-            const childProps = child.properties
-            const childSlug = getTextFromProperty(getProperty(childProps, ['slug', 'Slug'])) || (await getSlugForPageId(child.id))
-            const childTitle = getTextFromProperty(getProperty(childProps, ['title', 'Title', 'Name']))
-            return { title: childTitle || childSlug, slug: childSlug }
-          }))
-        } else {
-          console.log('No child projects found for parent page:', slug)
-        }
-
-        // If this project has a parent, fetch siblings (other children of the same parent)
-        if (parentProject) {
-          let siblingsResp: any = null
-          for (const propName of parentPropertyCandidates) {
-            try {
-              // Find the parent page ID first
-              const parentPageResp = await notion.databases.query({
-                database_id: process.env.NOTION_PROJECT_DB_ID!,
-                filter: {
-                  property: 'slug',
-                  rich_text: { equals: parentProject.slug },
-                },
-              })
-              
-              if (parentPageResp?.results?.length) {
-                const parentPageId = parentPageResp.results[0].id
-                
-                // Query all projects that have this parent
-                siblingsResp = await notion.databases.query({
-                  database_id: process.env.NOTION_PROJECT_DB_ID!,
-                  filter: {
-                    property: propName,
-                    relation: { contains: parentPageId },
-                  },
-                  sorts: [{ property: 'title', direction: 'ascending' }],
-                })
-                
-                if (siblingsResp?.results?.length) {
-                  console.log(`Found ${siblingsResp.results.length} sibling projects using relation property: ${propName}`)
-                  break
-                }
-              }
-            } catch (e) {
-              // try next candidate
+            
+            if (siblingsResp?.results?.length) {
+              console.log(`Found ${siblingsResp.results.length} sibling projects`)
+              siblingProjects = await Promise.all(
+                siblingsResp.results
+                  .filter((sibling: any) => sibling.id !== page.id) // Exclude current project
+                  .map(async (sibling: any) => {
+                    const siblingProps = sibling.properties
+                    const siblingSlug = getTextFromProperty(getProperty(siblingProps, ['slug', 'Slug'])) || (await getSlugForPageId(sibling.id))
+                    const siblingTitle = getTextFromProperty(getProperty(siblingProps, ['title', 'Title', 'Name']))
+                    return { title: siblingTitle || siblingSlug, slug: siblingSlug }
+                  })
+              )
+            } else {
+              console.log('No sibling projects found for', slug)
             }
           }
-          
-          if (siblingsResp?.results?.length) {
-            siblingProjects = await Promise.all(
-              siblingsResp.results
-                .filter((sibling: any) => sibling.id !== page.id) // Exclude current project
-                .map(async (sibling: any) => {
-                  const siblingProps = sibling.properties
-                  const siblingSlug = getTextFromProperty(getProperty(siblingProps, ['slug', 'Slug'])) || (await getSlugForPageId(sibling.id))
-                  const siblingTitle = getTextFromProperty(getProperty(siblingProps, ['title', 'Title', 'Name']))
-                  return { title: siblingTitle || siblingSlug, slug: siblingSlug }
-                })
-            )
-          } else {
-            console.log('No sibling projects found for', slug)
-          }
+        } catch (err) {
+          console.warn('Error fetching sibling projects for', slug, err)
         }
-      } catch (err) {
-        console.warn('Error fetching child/sibling projects for', slug, err)
+      }
+      
+      if (!hasParentProperty && !hasChildProperty) {
+        console.log(`No parent/child project properties found for ${slug}. Available properties:`, availableProperties)
       }
 
       console.log(`Project "${getTextFromProperty(properties.title)}" related content:`, {
@@ -980,13 +964,13 @@ export async function getMilestonesFromNotion(): Promise<Milestone[]> {
       let response = await notion.databases.query({
         database_id: process.env.NOTION_MILESTONES_DB_ID,
         filter: {
-          property: 'Published',
+          property: 'published',
           checkbox: {
             equals: true,
           },
         },
         sorts: [
-          { property: 'Date', direction: 'descending' },
+          { property: 'date', direction: 'descending' },
         ],
       }).catch((err) => {
         console.warn('Strict Notion query failed, will retry without filters:', err)
